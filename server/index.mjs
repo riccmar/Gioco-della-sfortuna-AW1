@@ -1,11 +1,79 @@
-// imports
 import express from 'express';
+import morgan from 'morgan';
+import passport from 'passport';
+import LocalStrategy from 'passport-local';
+import session from 'express-session';
+import cors from 'cors';
 
-// init express
+/* init express */
 const app = new express();
 const port = 3001;
 
-// activate the server
+
+/* middleware */
+app.use(express.json());
+app.use(morgan('dev'));
+
+const corsOptions = {
+  origin: 'http://localhost:5173',
+  optionsSuccessState: 200,
+  credentials: true
+};
+app.use(cors(corsOptions));
+
+passport.use(new LocalStrategy(async function verify(username, password, cb) {
+  /* // TODO: getUser
+  const user = await getUser(username, password);
+  if(!user)
+  return cb(null, false, 'Incorrect username or password.');
+  
+  return cb(null, user);
+  */
+}));
+
+passport.serializeUser(function (user, cb) {
+  cb(null, user);
+});
+passport.deserializeUser(function (user, cb) {
+  return cb(null, user);
+});
+app.use(session({
+  secret: "shh... it's a secret!",
+  resave: false,
+  saveUninitialized: false,
+}));
+
+app.use(passport.authenticate('session'));
+
+const isLoggedIn = (req, res, next) => {
+  if(req.isAuthenticated()) {
+    return next();
+  }
+
+  return res.status(401).json({error: 'Unauthorized'});
+}
+
+
+/* routes */
+// POST /api/login
+app.post('/api/login', passport.authenticate('local'), function(req, res) {
+  return res.status(201).json(req.user);
+});
+
+// GET /api/sessions/current
+app.get('/api/sessions/current', isLoggedIn, (req, res) => {
+  res.json(req.user);
+});
+
+// DELETE /api/session/current
+app.delete('/api/logout', (req, res) => {
+  req.logout(() => {
+    res.end();
+  });
+});
+
+
+/* activate the server */
 app.listen(port, () => {
   console.log(`Server listening at http://localhost:${port}`);
 });
