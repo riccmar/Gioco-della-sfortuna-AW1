@@ -73,5 +73,5 @@
 
 ## Users Credentials
 
-- username, password (plus any other requested info)
-- username, password (plus any other requested info)
+- riccardo.marconi@polito.it, password
+- elon.musk@polito.it, password
