@@ -1,22 +1,40 @@
-import "bootstrap-icons/font/bootstrap-icons.css";
+import { useContext } from "react";
 import { Container, Navbar, Nav } from "react-bootstrap";
 import { Link, useLocation } from "react-router";
 
-function NavHeader() {
+import { LoggedInContext } from "../contexts/userContext.mjs";
+
+import { LoginButton, LogoutButton, ProfileButton } from "./AuthComponents";
+
+function NavHeader(props) {
   const location = useLocation();
+  const loggedIn = useContext(LoggedInContext);
 
   return (
     <Navbar bg="primary" data-bs-theme="dark">
-        <Container fluid >
-          <Navbar.Brand>
-            <h1 className="mb-0">Stuff Happens</h1>
-          </Navbar.Brand>
+        <Container fluid>
+          {
+            location.pathname === '/game' ? (
+              <h1 className="mb-0">Stuff Happens</h1>
+            ) : (
+              <Link to={ '/' } className="text-light text-decoration-none">
+                  <h1 className="mb-0">Stuff Happens</h1>
+              </Link>
+            )
+          }
+          
+          {
+            location.pathname !== '/login' && !loggedIn && <LoginButton />
+          }
 
           {
-            location.pathname !== '/login' && 
-            <Link to={ '/login' } className="fs-2 text-decoration-none bi bi-person-circle d-flex flex-column align-items-center justify-content-center">
-                <span className="fs-6">Login</span>
-            </Link>
+            loggedIn && 
+            <div className="d-flex gap-3">
+                <LogoutButton handleLogout={ props.handleLogout } />
+              {
+                location.pathname !== '/profile' && <ProfileButton />
+              }
+            </div>
           }
         </Container>
     </Navbar>

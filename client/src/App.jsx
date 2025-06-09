@@ -1,20 +1,67 @@
 import "bootstrap/dist/css/bootstrap.min.css";
-import { Route, Routes } from 'react-router'
+import { Route, Routes, Navigate } from 'react-router'
+import { useEffect, useState } from "react";
+
+import { LoggedInContext, UserContext  } from "./contexts/userContext.mjs";
 
 import DefaultLayout from "./components/DefaultLayout";
 import Home from "./components/Home";
+import { LoginForm } from "./components/AuthComponents";
+
+import API from "./API/api.mjs";
 
 function App() {
+  const [loggedIn, setLoggedIn] = useState(false);
+  const [user, setUser] = useState('');
+  const [message, setMessage] = useState({ msg: '', type: '' });
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const user = await API.getUserInfo();
+      setLoggedIn(true);
+      setUser(user);
+    };
+    checkAuth();
+  }, []);
+
+  const handleLogin = async (credentials) => {
+    try {
+      const user = await API.logIn(credentials);
+      setLoggedIn(true);
+      setMessage({ msg: `Welcome, ${user.name}!`, type: 'success' });
+      setUser(user);
+    } catch(err) {
+      throw err;
+    }
+  }
+
+  const handleLogout = async () => {
+    try {
+      await API.logOut();
+      setLoggedIn(false);
+      setMessage({ msg: `You have been logged out.`, type: 'success' });
+      setUser('');
+    } catch (err) {
+      setMessage({ msg: err, type: 'danger' });
+    }
+  }
+
   return (
-    <Routes>
-      <Route element={ <DefaultLayout /> }>
-        <Route path='/' element={ <Home /> }/>
+    <LoggedInContext.Provider value={ loggedIn }>
+      <UserContext.Provider value={ user }>
+        <Routes>
+          <Route element={ <DefaultLayout handleLogout={ handleLogout }/> }>
+            <Route path='/' element={ <Home key={ message.msg.length } message={ message } /> } />
 
-        <Route path='/login'/>
+            <Route path='/login' element={ loggedIn ? <Navigate replace to='/' /> : <LoginForm handleLogin={ handleLogin } /> } />
 
-        <Route path='*'/> {/* TODO: 404 Not Found */}
-      </Route>
-    </Routes>
+            <Route path='/profile' element={ loggedIn ? <Home /> : <Navigate replace to='/login' /> } />
+
+            <Route path='*' /> {/* TODO: 404 Not Found */}
+          </Route>
+        </Routes>
+      </UserContext.Provider>
+    </LoggedInContext.Provider>
   )
 }
 

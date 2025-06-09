@@ -5,8 +5,10 @@ import LocalStrategy from 'passport-local';
 import session from 'express-session';
 import cors from 'cors';
 
+import { DAO } from './dao.mjs';
+
 /* init express */
-const app = new express();
+const app = express();
 const port = 3001;
 
 
@@ -21,14 +23,19 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 
+app.use(session({
+  secret: "shh... it's a secret!",
+  resave: false,
+  saveUninitialized: false,
+}));
+
 passport.use(new LocalStrategy(async function verify(username, password, cb) {
-  /* // TODO: getUser
-  const user = await getUser(username, password);
-  if(!user)
-  return cb(null, false, 'Incorrect username or password.');
+  const user = await DAO.getUser(username, password);
+  
+  if (!user)
+    return cb(null, false);
   
   return cb(null, user);
-  */
 }));
 
 passport.serializeUser(function (user, cb) {
@@ -37,11 +44,6 @@ passport.serializeUser(function (user, cb) {
 passport.deserializeUser(function (user, cb) {
   return cb(null, user);
 });
-app.use(session({
-  secret: "shh... it's a secret!",
-  resave: false,
-  saveUninitialized: false,
-}));
 
 app.use(passport.authenticate('session'));
 
@@ -57,7 +59,7 @@ const isLoggedIn = (req, res, next) => {
 /* routes */
 // POST /api/login
 app.post('/api/login', passport.authenticate('local'), function(req, res) {
-  return res.status(201).json(req.user);
+  return res.status(200).json(req.user);
 });
 
 // GET /api/sessions/current
@@ -65,7 +67,7 @@ app.get('/api/sessions/current', isLoggedIn, (req, res) => {
   res.json(req.user);
 });
 
-// DELETE /api/session/current
+// DELETE /api/logout
 app.delete('/api/logout', (req, res) => {
   req.logout(() => {
     res.end();

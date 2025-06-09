@@ -4,10 +4,10 @@ import { Outlet } from "react-router";
 import NavHeader from "./NavHeader";
 import Footer from "./Footer";
 
-function DefaultLayout() {
+function DefaultLayout(props) {
   return(
     <>
-      <NavHeader />
+      <NavHeader handleLogout={ props.handleLogout } />
 
       <Container fluid>
         <Outlet />
