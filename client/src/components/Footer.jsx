@@ -1,9 +1,9 @@
 function Footer() {
   return (
-    <footer className="text-light text-center mt-3 p-2">
+    <footer className="text-light text-center p-2">
       &copy; 2025 - Applicazioni Web
     </footer>
   );
 }
 
-export default Footer;
+export { Footer };

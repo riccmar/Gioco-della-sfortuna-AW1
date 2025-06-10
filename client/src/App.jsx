@@ -4,8 +4,9 @@ import { useEffect, useState } from "react";
 
 import { LoggedInContext, UserContext  } from "./contexts/userContext.mjs";
 
-import DefaultLayout from "./components/DefaultLayout";
-import Home from "./components/Home";
+import { DefaultLayout } from "./components/DefaultLayout";
+import { Home } from "./components/Home";
+import { Game } from "./components/Game";
 import { LoginForm } from "./components/AuthComponents";
 
 import API from "./API/api.mjs";
@@ -51,7 +52,9 @@ function App() {
       <UserContext.Provider value={ user }>
         <Routes>
           <Route element={ <DefaultLayout handleLogout={ handleLogout }/> }>
-            <Route path='/' element={ <Home key={ message.msg.length } message={ message } /> } />
+            <Route path='/' element={ <Home message={ message } setMessage={ setMessage } /> } />
+
+            <Route path='/game' element={ <Game /> } />
 
             <Route path='/login' element={ loggedIn ? <Navigate replace to='/' /> : <LoginForm handleLogin={ handleLogin } /> } />
 

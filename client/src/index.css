@@ -1,6 +1,11 @@
+.intro-home {
+    background-color: #b8ccee8f;
+}
+
+.table {
+    background-color: #b8ccee8f;
+}
+
 footer {
     background-color: rgb(42, 47, 55);
-    position: fixed;
-    bottom: 0;
-    width: 100%;
 }

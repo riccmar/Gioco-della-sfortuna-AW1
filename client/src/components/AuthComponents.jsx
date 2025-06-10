@@ -1,7 +1,9 @@
 import "bootstrap-icons/font/bootstrap-icons.css";
-import { useActionState, useState } from "react";
+import { useActionState, useContext, useState } from "react";
 import { Alert, Button, Col, Form, Row } from "react-bootstrap";
 import { Link } from "react-router";
+
+import { UserContext } from "../contexts/userContext.mjs";
 
 function LoginForm(props) {
   const [state, formAction, isPending] = useActionState(handleSubmit, {username: '', password: ''});
@@ -44,7 +46,7 @@ function LoginForm(props) {
 
   return (
     <>
-      <Row className="justify-content-center mt-3">
+      <Row className="justify-content-center m-3">
         <Col md={ 4 } className="border rounded p-3">
           <h2 className="text-center mb-3">Login</h2>
 
@@ -100,15 +102,16 @@ function LogoutButton(props) {
 }
 
 function ProfileButton() {
+  const user = useContext(UserContext)
+
   return (
     <Link 
       to={ '/profile' } 
       className="fs-2 pt-1 text-decoration-none bi bi-person d-flex flex-column align-items-center justify-content-center"
     >
-      <span className="fs-6">Profile</span>
+      <span className="fs-6">{ user.name }</span>
     </Link>
   );
 }
-
 
 export { LoginForm, LoginButton, LogoutButton, ProfileButton };

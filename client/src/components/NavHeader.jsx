@@ -15,7 +15,7 @@ function NavHeader(props) {
         <Container fluid>
           {
             location.pathname === '/game' ? (
-              <h1 className="mb-0">Stuff Happens</h1>
+              <h1 className="text-light mb-0">Stuff Happens</h1>
             ) : (
               <Link to={ '/' } className="text-light text-decoration-none">
                   <h1 className="mb-0">Stuff Happens</h1>
@@ -41,4 +41,4 @@ function NavHeader(props) {
   );
 }
 
-export default NavHeader;
+export { NavHeader };
