@@ -1,5 +1,5 @@
 import "bootstrap/dist/css/bootstrap.min.css";
-import { Route, Routes, Navigate } from 'react-router'
+import { Route, Routes, Navigate, useNavigate } from 'react-router'
 import { useEffect, useState } from "react";
 
 import { LoggedInContext, UserContext  } from "./contexts/userContext.mjs";
@@ -15,6 +15,8 @@ function App() {
   const [loggedIn, setLoggedIn] = useState(false);
   const [user, setUser] = useState('');
   const [message, setMessage] = useState({ msg: '', type: '' });
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -43,7 +45,20 @@ function App() {
       setMessage({ msg: `You have been logged out.`, type: 'success' });
       setUser('');
     } catch (err) {
-      setMessage({ msg: err, type: 'danger' });
+      setMessage({ msg: `Error: ${ err.error }`, type: 'danger' });
+    }
+  }
+
+  const handleStartMatch = async () => {
+    try {
+      const gameId = await API.createMatch();
+      if (gameId) {
+        navigate(`/match/${ gameId }`);
+      } else {
+        setMessage({ msg: 'Failed to start match.', type: 'danger' });
+      }      
+    } catch(err) {
+      setMessage({ msg: `Error: ${ err.error }`, type: 'danger' });
     }
   }
 
@@ -52,9 +67,9 @@ function App() {
       <UserContext.Provider value={ user }>
         <Routes>
           <Route element={ <DefaultLayout handleLogout={ handleLogout }/> }>
-            <Route path='/' element={ <Home message={ message } setMessage={ setMessage } /> } />
+            <Route path='/' element={ <Home message={ message } setMessage={ setMessage } handleStartMatch={ handleStartMatch } /> } />
 
-            <Route path='/game' element={ <Game /> } />
+            <Route path='/match/:gameId' element={ <Game /> } />
 
             <Route path='/login' element={ loggedIn ? <Navigate replace to='/' /> : <LoginForm handleLogin={ handleLogin } /> } />
 

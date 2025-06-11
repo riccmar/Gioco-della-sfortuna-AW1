@@ -4,6 +4,7 @@ import passport from 'passport';
 import LocalStrategy from 'passport-local';
 import session from 'express-session';
 import cors from 'cors';
+import { check, validationResult } from 'express-validator';
 
 import { DAO } from './dao.mjs';
 
@@ -68,10 +69,78 @@ app.get('/api/sessions/current', isLoggedIn, (req, res) => {
 });
 
 // DELETE /api/logout
-app.delete('/api/logout', (req, res) => {
+app.delete('/api/logout', isLoggedIn, (req, res) => {
   req.logout(() => {
     res.end();
   });
+});
+
+// POST /api/games/new
+app.post('/api/games/new', async (req, res) => {
+  const userId = req.user.isAuthenticated() ? req.user.id : 0;
+
+  try {
+    const gameId = await DAO.createMatch(userId);
+    
+    await DAO.createInitialRound(gameId, userId);
+
+    return res.status(201).json({ gameId });
+  } catch (err) {
+    return res.status(500).json({ error: err });
+  }
+});
+
+// POST /api/games/:gameId/rounds/new
+app.post('/api/games/:gameId/rounds/new', [
+  check('round').notEmpty(),
+  check('round').isNumeric(),
+], isLoggedIn, async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(422).json({error: errors.array()});
+  }
+
+  const round = req.body.round;
+  const gameId = req.params.gameId;
+  const userId = req.user.isAuthenticated() ? req.user.id : 0;
+
+  try {
+    await DAO.createRound(round, gameId, userId);
+
+    return res.status(201).end();
+  } catch (err) {
+    return res.status(500).json({ error: err });
+  }
+});
+
+// GET /api/games/:gameId/rounds/:roundId/cards
+app.get('/api/games/:gameId/rounds/:roundId/cards',  async (req, res) => {
+  const gameId = req.params.gameId;
+  const roundId = req.params.roundId;
+  const userId = req.user.isAuthenticated() ? req.user.id : 0;
+
+  try {
+    const cards = await DAO.getOwnedCards(roundId, gameId, userId);
+
+    return res.status(200).json(cards);
+  } catch (err) {
+    return res.status(500).json({ error: err });
+  }
+});
+
+// GET /api/games/:gameId/rounds/:roundId/cards
+app.get('/api/games/:gameId/rounds/:roundId/cards/next',  async (req, res) => {
+  const gameId = req.params.gameId;
+  const roundId = req.params.roundId;
+  const userId = req.user.isAuthenticated() ? req.user.id : 0;
+
+  try {
+    const card = await DAO.getNextCards(roundId, gameId, userId);
+
+    return res.status(200).json(card);
+  } catch (err) {
+    return res.status(500).json({ error: err });
+  }
 });
 
 

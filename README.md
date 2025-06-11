@@ -52,6 +52,7 @@
   | Field  | Type    |
   | ------ | ------- |
   | idR    | integer |
+  | number | integer |
   | start  | text    |
   | end    | text    |
   | win    | integer |
