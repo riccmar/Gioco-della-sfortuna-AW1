@@ -93,7 +93,7 @@ function OwnedCards(props) {
 function GameCard(props) {
   return (
     <Card className="shadow rounded">
-      <Card.Img className="img-card rounded" variant="top" src="/card1.jpeg" />
+      <Card.Img className="img-card rounded" variant="top" src={ props.card.path } />
         
       <Card.Body className="d-flex flex-column p-0">
         <Card.Text className="flex-grow-1 d-flex align-items-center text-center mt-2 mb-0">
@@ -167,7 +167,7 @@ function NextCard(props) {
       {
         props.nextCard ?
           <Card className="h-auto w-75 shadow rounded mt-1 p-2">
-            <Card.Img className="img-card rounded" variant="top" src="/card1.jpeg" />
+            <Card.Img className="img-card rounded" variant="top" src={ props.nextCard.path } />
               
             <Card.Body className="p-0">
               <Card.Text className="text-center mt-1">

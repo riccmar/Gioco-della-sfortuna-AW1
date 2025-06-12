@@ -98,7 +98,9 @@ const getOwnedCards = async (round, gameId) => {
   if (response.ok) {
     const cards = await response.json();
 
-    // TODO: Take image of cards
+    for (const card of cards) {
+      card.path = SERVER_URL + `/static/${ card.path }`;
+    }
 
     return cards.map(card => new Models.Card(card.id, card.name, card.path, card.rate));
   } else {
@@ -118,9 +120,9 @@ const getNextCard = async (round, gameId) => {
 
   if (response.ok) {
     const card = await response.json();
-    const image = await fetch(SERVER_URL + `/static/${ card.path }`);
+    card.path = SERVER_URL + `/static/${ card.path }`;
 
-    return new Models.HiddenCard(card.id, card.name, image);
+    return new Models.HiddenCard(card.id, card.name, card.path);
   } else {
     const errMessage = await response.json();
     throw errMessage;

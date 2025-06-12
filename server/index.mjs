@@ -56,7 +56,7 @@ const isLoggedIn = (req, res, next) => {
   return res.status(401).json({error: 'Unauthorized'});
 }
 
-app.use(express.static('public'));
+app.use('/static', express.static('public'));
 
 
 /* routes */

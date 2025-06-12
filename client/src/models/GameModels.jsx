@@ -20,10 +20,10 @@ function Card(id, name, path, rate) {
   this.rate = rate;
 }
 
-function HiddenCard(id, name, image) {
+function HiddenCard(id, name, path) {
   this.id = id;
   this.name = name;
-  this.image = image;
+  this.path = path;
 }
 
 const Models = { User, Game, Card, HiddenCard };
