@@ -20,5 +20,11 @@ function Card(id, name, path, rate) {
   this.rate = rate;
 }
 
-const Models = { User, Game, Card };
+function HiddenCard(id, name, image) {
+  this.id = id;
+  this.name = name;
+  this.image = image;
+}
+
+const Models = { User, Game, Card, HiddenCard };
 export { Models };

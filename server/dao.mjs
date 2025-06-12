@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import dayjs from 'dayjs';
 
 import { Models } from './GameModels.mjs';
+import { get } from 'http';
 
 // open the database
 const db = new sqlite.Database('sh.sqlite', (err) => {
@@ -13,9 +14,11 @@ const db = new sqlite.Database('sh.sqlite', (err) => {
 // Get a specific user
 const getUser = (email, password) => {
   return new Promise((resolve, reject) => {
-    const sql = 'SELECT * FROM user WHERE email = ?';
+    const sql1 = `SELECT * 
+                  FROM user 
+                  WHERE email = ?`;
 
-    db.get(sql, [email], (err, row) => {
+    db.get(sql1, [email], (err, row) => {
       if (err) { 
         reject(err);
       }
@@ -41,12 +44,13 @@ const getUser = (email, password) => {
 
 const createMatch = (userId) => {
   return new Promise((resolve, reject) => {
-    const sql = 'INSERT INTO game (date, win, userId) VALUES (?, ?, ?)';
+    const sql1 = `INSERT INTO game (date, win, userId) 
+                  VALUES (?, ?, ?)`;
 
     const date = dayjs().format('YYYY-MM-DD HH:mm:ss');
     const win = 0;
 
-    db.run(sql, [date, win, userId], function(err) {
+    db.run(sql1, [date, win, userId], function(err) {
       if (err) {
         reject(err);
       } else {
@@ -58,16 +62,19 @@ const createMatch = (userId) => {
 
 const createInitialRound = (gameId, userId) => {
   return new Promise((resolve, reject) => {
-    const sql = 'SELECT * FROM card ORDER BY RANDOM() LIMIT 3';
+    const sql1 = `SELECT * 
+                  FROM card 
+                  ORDER BY RANDOM() LIMIT 3`;
 
     const date = dayjs().format('YYYY-MM-DD HH:mm:ss');
-    const win = -1;
+    const win = 1;
 
-    db.each(sql, [], (err, row) => {
+    db.each(sql1, [], (err, row) => {
       if (err) {
         reject(err);
       } else {
-        const sql2 = 'INSERT INTO round (number, start, end, win, gameId, cardId, userId) VALUES (?, ?, ?, ?, ?, ?, ?)';
+        const sql2 = `INSERT INTO round (number, start, end, win, gameId, cardId, userId) 
+                      VALUES (?, ?, ?, ?, ?, ?, ?)`;
 
         db.run(sql2, [0, date, date, win, gameId, row.idC, userId], function(err) {
           if (err) {
@@ -76,6 +83,25 @@ const createInitialRound = (gameId, userId) => {
             resolve(this.lastID);
           }
         });
+      }
+    });
+  });
+}
+
+const takePreviousRound = (gameId, userId) => {
+  return new Promise((resolve, reject) => {
+    const sql1 = `SELECT number
+                  FROM round 
+                  WHERE gameId = ? AND userId = ? 
+                  ORDER BY number DESC LIMIT 1`;
+
+    db.get(sql1, [gameId, userId], (err, row) => {
+      if (err) {
+        reject(err);
+      } else if (row === undefined) {
+        reject({message: "Previous round not found."});
+      } else {
+        resolve(row.number);
       }
     });
   });
@@ -96,12 +122,13 @@ const createRound = (round, gameId, userId) => {
       if (err) {
         reject(err);
       } else {
-        const sql3 = 'INSERT INTO round (number, start, end, win, gameId, cardId, userId) VALUES (?, ?, ?, ?, ?, ?, ?)';
+        const sql3 = `INSERT INTO round (number, start, end, win, gameId, cardId, userId) 
+                      VALUES (?, ?, ?, ?, ?, ?, ?)`;
 
         const date = dayjs().format('YYYY-MM-DD HH:mm:ss');
         const win = 0;
 
-        db.run(sql3, [round, date, 0, win, gameId, row.id, userId], function(err) {
+        db.run(sql3, [round, date, 0, win, gameId, row.idC, userId], function(err) {
           if (err) {
             reject(err);
           } else {
@@ -115,17 +142,17 @@ const createRound = (round, gameId, userId) => {
 
 const getOwnedCards = (round, gameId, userId) => {
   return new Promise((resolve, reject) => {
-    const sql = `SELECT card.idC, card.name, card.path, card.rate 
-                 FROM round 
-                 JOIN card ON round.cardId = card.idC 
-                 WHERE round.number = ? AND round.gameId = ? AND round.userId = ?`;
+    const sql1 = `SELECT card.idC, card.name, card.path, card.rate 
+                  FROM round 
+                  JOIN card ON round.cardId = card.idC 
+                  WHERE win = 1 AND round.number <= ? AND round.gameId = ? AND round.userId = ?
+                  ORDER BY card.rate`;
 
-    db.all(sql, [round, gameId, userId], (err, rows) => {
+    db.all(sql1, [round, gameId, userId], (err, rows) => {
       if (err) {
         reject(err);
       } else {
-        const cards = rows.map(row => new Models.Card(row.idC, row.name, row.rate, row.image));
-        
+        const cards = rows.map(row => new Models.Card(row.idC, row.name, row.path, row.rate));
         resolve(cards);
       }
     });
@@ -134,24 +161,60 @@ const getOwnedCards = (round, gameId, userId) => {
 
 const getNextCard = (round, gameId, userId) => {
   return new Promise((resolve, reject) => {
-    const sql = `SELECT card.idC, card.name, card.rate, card.image 
-                 FROM round 
-                 JOIN card ON round.cardId = card.idC 
-                 WHERE round.number = ? AND round.gameId = ? AND round.userId = ?`;
+    const sql1 = `SELECT card.idC, card.name, card.path 
+                  FROM round 
+                  JOIN card ON round.cardId = card.idC 
+                  WHERE round.number = ? AND round.gameId = ? AND round.userId = ?`;
 
-    db.get(sql, [round, gameId, userId], (err, row) => {
+    db.get(sql1, [round, gameId, userId], (err, row) => {
       if (err) {
         reject(err);
       } else if (row === undefined) {
-        resolve(false);
+        reject({message: "Next Card not found."});
       } else {
-        const card = new Models.Card(row.idC, row.name, row.rate, row.image);
+        const card = new Models.Card(row.idC, row.name, row.path);
         resolve(card);
       }
     });
   });
 }
 
+const getCardByRound = (round, gameId, userId) => {
+  return new Promise((resolve, reject) => {
+    const sql1 = `SELECT card.idC, card.name, card.path, card.rate 
+                  FROM round
+                  JOIN card ON round.cardId = card.idC 
+                  WHERE round.number = ? AND round.gameId = ? AND round.userId = ?`;
 
-const DAO = { getUser, createMatch, createInitialRound, createRound, getOwnedCards, getNextCard };
+    db.get(sql1, [round, gameId, userId], (err, row) => {
+      if (err) {
+        reject(err);
+      } else if (row === undefined) {
+        reject({message: "Card not found."});
+      } else {
+        const card = new Models.Card(row.idC, row.name, row.path, row.rate);
+        resolve(card);
+      }
+    });
+  });
+}
+
+const updateRound = (round, gameId, userId, win) => {
+  return new Promise((resolve, reject) => {
+    const sql1 = `UPDATE round 
+                  SET win = ? 
+                  WHERE number = ? AND gameId = ? AND userId = ?`;
+
+    db.run(sql1, [win, round, gameId, userId], function(err) {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(this.lastID);
+      }
+    });
+  });
+}
+
+
+const DAO = { getUser, createMatch, createInitialRound, takePreviousRound, createRound, getOwnedCards, getNextCard, getCardByRound, updateRound };
 export { DAO };

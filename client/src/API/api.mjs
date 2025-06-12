@@ -1,4 +1,4 @@
-import { get } from "http";
+import { Models } from "../models/GameModels";
 
 const SERVER_URL = 'http://localhost:3001';
 
@@ -68,25 +68,25 @@ const createMatch = async () => {
   }
 }
 
-const newRound = async (round, gameId) => {
+const newRound = async (gameId) => {
   const response = await fetch(SERVER_URL + `/api/games/${ gameId }/rounds/new`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     credentials: 'include',
-    body: JSON.stringify({ round }),
   });
 
   if (response.ok) {
-    return true;
+    const res = await response.json();
+    return res.round;
   } else {
     const errMessage = await response.json();
     throw errMessage;
   }
 }
 
-const getOwnedCards = async (round, gameId, userId) => {
+const getOwnedCards = async (round, gameId) => {
   const response = await fetch(SERVER_URL + `/api/games/${ gameId }/rounds/${ round }/cards`, {
     method: 'GET',
     headers: {
@@ -97,25 +97,49 @@ const getOwnedCards = async (round, gameId, userId) => {
 
   if (response.ok) {
     const cards = await response.json();
-    return cards;
+
+    // TODO: Take image of cards
+
+    return cards.map(card => new Models.Card(card.id, card.name, card.path, card.rate));
   } else {
     const errMessage = await response.json();
     throw errMessage;
   }
 }
 
-const getNextCard = async (round, gameId, userId) => {
+const getNextCard = async (round, gameId) => {
   const response = await fetch(SERVER_URL + `/api/games/${ gameId }/rounds/${ round }/cards/next`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
     },
-    credentials: 'include',
+    credentials: 'include'
   });
 
   if (response.ok) {
     const card = await response.json();
-    return card;
+    const image = await fetch(SERVER_URL + `/static/${ card.path }`);
+
+    return new Models.HiddenCard(card.id, card.name, image);
+  } else {
+    const errMessage = await response.json();
+    throw errMessage;
+  }
+}
+
+const checkEndRound = async (choice, round, gameId) => {
+  const response = await fetch(SERVER_URL + `/api/games/${ gameId }/rounds/${ round }`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include',
+    body: JSON.stringify({ choice }),
+  });
+
+  if (response.ok) {
+    const res = await response.json();
+    return res;
   } else {
     const errMessage = await response.json();
     throw errMessage;
@@ -123,5 +147,5 @@ const getNextCard = async (round, gameId, userId) => {
 }
 
 
-const API = { logIn, logOut, getUserInfo, createMatch, newRound, getOwnedCards, getNextCard };
-export default API;
+const API = { logIn, logOut, getUserInfo, createMatch, newRound, getOwnedCards, getNextCard, checkEndRound };
+export { API };

@@ -9,7 +9,7 @@ import { Home } from "./components/Home";
 import { Game } from "./components/Game";
 import { LoginForm } from "./components/AuthComponents";
 
-import API from "./API/api.mjs";
+import { API } from "./API/api.mjs";
 
 function App() {
   const [loggedIn, setLoggedIn] = useState(false);

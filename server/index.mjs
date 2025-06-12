@@ -56,6 +56,8 @@ const isLoggedIn = (req, res, next) => {
   return res.status(401).json({error: 'Unauthorized'});
 }
 
+app.use(express.static('public'));
+
 
 /* routes */
 // POST /api/login
@@ -77,7 +79,7 @@ app.delete('/api/logout', isLoggedIn, (req, res) => {
 
 // POST /api/games/new
 app.post('/api/games/new', async (req, res) => {
-  const userId = req.user.isAuthenticated() ? req.user.id : 0;
+  const userId = req.isAuthenticated() ? req.user.id : 0;
 
   try {
     const gameId = await DAO.createMatch(userId);
@@ -86,60 +88,99 @@ app.post('/api/games/new', async (req, res) => {
 
     return res.status(201).json({ gameId });
   } catch (err) {
-    return res.status(500).json({ error: err });
+    return res.status(500).json({ error: err.message });
   }
 });
 
 // POST /api/games/:gameId/rounds/new
-app.post('/api/games/:gameId/rounds/new', [
-  check('round').notEmpty(),
-  check('round').isNumeric(),
-], isLoggedIn, async (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(422).json({error: errors.array()});
-  }
-
-  const round = req.body.round;
+app.post('/api/games/:gameId/rounds/new', async (req, res) => {
   const gameId = req.params.gameId;
-  const userId = req.user.isAuthenticated() ? req.user.id : 0;
-
+  const userId = req.isAuthenticated() ? req.user.id : 0;
+  
   try {
+    let round = await DAO.takePreviousRound(gameId, userId);
+    round++;
+    if (!req.isAuthenticated() && round > 1) {
+      return res.status(401).json({error: 'Unauthorized. You must be logged to play other rounds.'})
+    }
+
     await DAO.createRound(round, gameId, userId);
 
-    return res.status(201).end();
+    return res.status(201).json({ round });
   } catch (err) {
-    return res.status(500).json({ error: err });
+    return res.status(500).json({ error: err.message });
   }
 });
 
-// GET /api/games/:gameId/rounds/:roundId/cards
-app.get('/api/games/:gameId/rounds/:roundId/cards',  async (req, res) => {
+// GET /api/games/:gameId/rounds/:round/cards
+app.get('/api/games/:gameId/rounds/:round/cards',  async (req, res) => {
   const gameId = req.params.gameId;
-  const roundId = req.params.roundId;
-  const userId = req.user.isAuthenticated() ? req.user.id : 0;
+  const round = req.params.round;
+  const userId = req.isAuthenticated() ? req.user.id : 0;
 
   try {
-    const cards = await DAO.getOwnedCards(roundId, gameId, userId);
+    if (!req.isAuthenticated() && round > 1) {
+      return res.status(401).json({error: 'Unauthorized. You must be logged to play other rounds.'})
+    }
+
+    const cards = await DAO.getOwnedCards(round, gameId, userId);
 
     return res.status(200).json(cards);
   } catch (err) {
-    return res.status(500).json({ error: err });
+    return res.status(500).json({ error: err.message });
   }
 });
 
-// GET /api/games/:gameId/rounds/:roundId/cards
-app.get('/api/games/:gameId/rounds/:roundId/cards/next',  async (req, res) => {
+// GET /api/games/:gameId/rounds/:round/cards/next
+app.get('/api/games/:gameId/rounds/:round/cards/next',  async (req, res) => {
   const gameId = req.params.gameId;
-  const roundId = req.params.roundId;
-  const userId = req.user.isAuthenticated() ? req.user.id : 0;
+  const round = req.params.round;
+  const userId = req.isAuthenticated() ? req.user.id : 0;
 
   try {
-    const card = await DAO.getNextCards(roundId, gameId, userId);
+    if (!req.isAuthenticated() && round > 1) {
+      return res.status(401).json({error: 'Unauthorized. You must be logged to play other rounds.'});
+    }
+
+    const card = await DAO.getNextCard(round, gameId, userId);
 
     return res.status(200).json(card);
   } catch (err) {
-    return res.status(500).json({ error: err });
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// PUT /api/games/:gameId/rounds/:round
+app.put('/api/games/:gameId/rounds/:round', [
+  check('choice').notEmpty()
+], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ error: errors.array() });
+  }
+
+  const userId = req.isAuthenticated() ? req.user.id : 0;
+  const gameId = req.params.gameId;
+  const round = req.params.round;
+  const choice = req.body.choice;
+  const [min, max] = choice.split('-').map(Number);
+
+  try {
+    if (!req.isAuthenticated() && round > 1) {
+      return res.status(401).json({error: 'Unauthorized. You must be logged to play other rounds.'});
+    }
+
+    const hiddenCard = await DAO.getCardByRound(round, gameId, userId);
+
+    if (hiddenCard.rate > min && hiddenCard.rate < max) {
+      await DAO.updateRound(round, gameId, userId, 1);
+      return res.status(200).json({ message: 'Correct Answer! Round won. The card has been added to yours.', type: 'success' });
+    } else {
+      return res.status(200).json({ message: 'Wrong Answer! Round lost. Card discarded. ', type: 'danger' });
+    }
+
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
   }
 });
 
