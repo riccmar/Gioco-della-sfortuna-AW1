@@ -1,25 +1,14 @@
 import { useActionState, useEffect, useState } from "react";
 import { Button, Form } from "react-bootstrap";
 
-function calculateOptions(rates) {
-  const options = [];
-  const sortedRates = [...rates];
+import { useParams } from "react-router";
 
-  sortedRates.sort((a, b) => a - b);
-
-  if (sortedRates[0] !== 1)
-    options.push(<option key={ options.length } value={ `1 - ${ sortedRates[0] }` }>{ `1 - ${ sortedRates[0] }` }</option>);
-  for (let i = 0; i < sortedRates.length - 1; i++) {
-    options.push(<option key={ options.length } value={ `${ sortedRates[i] } - ${ sortedRates[i + 1] }` }>{ `${ sortedRates[i] } - ${ sortedRates[i + 1] }` }</option>);
-  }
-  options.push(<option key={ options.length } value={ `${ sortedRates[sortedRates.length - 1] } - 100` }>{ `${ sortedRates[sortedRates.length - 1] } - 100` }</option>);
-
-  return options;
-}
+import { API } from "../API/api.mjs";
 
 function ChoiceForm(props) {
   const [state, formAction, isPending] = useActionState(handleSubmit, {});
   const [options, setOptions] = useState([]);
+  const { gameId } = useParams();
 
   async function handleSubmit(prevState, formData) {
     const choice = formData.get('interval');
@@ -35,8 +24,13 @@ function ChoiceForm(props) {
   };
 
   useEffect(() => {
-    setOptions(calculateOptions(props.rates));
-  }, [props.rates.length]);
+    async function takeOptions() {
+      const opts = await API.getOptions(props.round, gameId);
+      setOptions(opts);
+    }
+
+    takeOptions();
+  }, []);
 
   return (
     <>
@@ -49,7 +43,13 @@ function ChoiceForm(props) {
           <h4 className="mb-0 me-3">Interval: </h4>
 
           <Form.Select name="interval" required>
-              { options }
+              { 
+                options.map((option, i) => 
+                  <option key={ i } value={ option }>
+                    { option }
+                  </option>
+                ) 
+              }
           </Form.Select>
         </Form.Group>
         

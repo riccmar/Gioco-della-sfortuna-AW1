@@ -3,7 +3,6 @@ import crypto from 'crypto';
 import dayjs from 'dayjs';
 
 import { Models } from './GameModels.mjs';
-import { get } from 'http';
 
 // open the database
 const db = new sqlite.Database('sh.sqlite', (err) => {
@@ -26,7 +25,7 @@ const getUser = (email, password) => {
         resolve(false); 
       }
       else {
-        const user = new Models.User(row.id, row.name, row.email);
+        const user = new Models.User(row.idU, row.name, row.email);
         const salt = row.salt;
         
         crypto.scrypt(password, salt, 32, function(err, hashedPassword) {
@@ -88,7 +87,7 @@ const createInitialRound = (gameId, userId) => {
   });
 }
 
-const takePreviousRound = (gameId, userId) => {
+const takeLastRound = (gameId, userId) => {
   return new Promise((resolve, reject) => {
     const sql1 = `SELECT number
                   FROM round 
@@ -99,7 +98,7 @@ const takePreviousRound = (gameId, userId) => {
       if (err) {
         reject(err);
       } else if (row === undefined) {
-        reject({message: "Previous round not found."});
+        reject({message: "Last Round not found."});
       } else {
         resolve(row.number);
       }
@@ -216,5 +215,5 @@ const updateRound = (round, gameId, userId, win) => {
 }
 
 
-const DAO = { getUser, createMatch, createInitialRound, takePreviousRound, createRound, getOwnedCards, getNextCard, getCardByRound, updateRound };
+const DAO = { getUser, createMatch, createInitialRound, takeLastRound, createRound, getOwnedCards, getNextCard, getCardByRound, updateRound };
 export { DAO };

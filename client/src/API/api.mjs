@@ -86,6 +86,24 @@ const newRound = async (gameId) => {
   }
 }
 
+const getCurrentRound = async (gameId) => {
+  const response = await fetch(SERVER_URL + `/api/games/${ gameId }/rounds/current`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include',
+  });
+
+  if (response.ok) {
+    const res = await response.json();
+    return res.round;
+  } else {
+    const errMessage = await response.json();
+    throw errMessage;
+  }
+}
+
 const getOwnedCards = async (round, gameId) => {
   const response = await fetch(SERVER_URL + `/api/games/${ gameId }/rounds/${ round }/cards`, {
     method: 'GET',
@@ -148,6 +166,24 @@ const checkEndRound = async (choice, round, gameId) => {
   }
 }
 
+const getOptions = async (round, gameId) => {
+  const response = await fetch(SERVER_URL + `/api/games/${ gameId }/rounds/${ round }/options`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include',
+  });
 
-const API = { logIn, logOut, getUserInfo, createMatch, newRound, getOwnedCards, getNextCard, checkEndRound };
+  if (response.ok) {
+    const res = await response.json();
+    return res.options;
+  } else {
+    const errMessage = await response.json();
+    throw errMessage;
+  }
+}
+
+
+const API = { logIn, logOut, getUserInfo, createMatch, newRound, getCurrentRound, getOwnedCards, getNextCard, checkEndRound, getOptions };
 export { API };

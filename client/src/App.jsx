@@ -8,6 +8,7 @@ import { DefaultLayout } from "./components/DefaultLayout";
 import { Home } from "./components/Home";
 import { Game } from "./components/Game";
 import { LoginForm } from "./components/AuthComponents";
+import { NotFound } from "./components/NotFound";
 
 import { API } from "./API/api.mjs";
 
@@ -73,9 +74,9 @@ function App() {
 
             <Route path='/login' element={ loggedIn ? <Navigate replace to='/' /> : <LoginForm handleLogin={ handleLogin } /> } />
 
-            <Route path='/profile' element={ loggedIn ? <Home /> : <Navigate replace to='/login' /> } />
+            <Route path='/profile' element={ loggedIn ? <NotFound /> : <Navigate replace to='/login' /> } />
 
-            <Route path='*' /> {/* TODO: 404 Not Found */}
+            <Route path='*' element={ <NotFound /> } /> {/* TODO: 404 Not Found */}
           </Route>
         </Routes>
       </UserContext.Provider>

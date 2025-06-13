@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Alert, Button, Modal } from "react-bootstrap";
-import { useNavigate } from "react-router";
 
 function Home(props) {
   return (
@@ -20,7 +19,6 @@ function Home(props) {
 }
 
 function HomeIntro(props) {
-  const navigate = useNavigate();
   const [show, setShow] = useState(false);;
 
   return (

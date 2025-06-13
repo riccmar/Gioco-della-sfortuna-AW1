@@ -98,7 +98,7 @@ app.post('/api/games/:gameId/rounds/new', async (req, res) => {
   const userId = req.isAuthenticated() ? req.user.id : 0;
   
   try {
-    let round = await DAO.takePreviousRound(gameId, userId);
+    let round = await DAO.takeLastRound(gameId, userId);
     round++;
     if (!req.isAuthenticated() && round > 1) {
       return res.status(401).json({error: 'Unauthorized. You must be logged to play other rounds.'})
@@ -107,6 +107,20 @@ app.post('/api/games/:gameId/rounds/new', async (req, res) => {
     await DAO.createRound(round, gameId, userId);
 
     return res.status(201).json({ round });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/games/:gameId/rounds/current
+app.get('/api/games/:gameId/rounds/current', async (req, res) => {
+  const gameId = req.params.gameId;
+  const userId = req.isAuthenticated() ? req.user.id : 0;
+
+  try {
+    const round = await DAO.takeLastRound(gameId, userId);
+
+    return res.status(200).json({ round });
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
@@ -179,6 +193,34 @@ app.put('/api/games/:gameId/rounds/:round', [
       return res.status(200).json({ message: 'Wrong Answer! Round lost. Card discarded. ', type: 'danger' });
     }
 
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/games/:gameId/rounds/:round/options', async (req, res) => {
+  const gameId = req.params.gameId;
+  const round = req.params.round;
+  const userId = req.isAuthenticated() ? req.user.id : 0;
+
+  try {
+    if (!req.isAuthenticated() && round > 1) {
+      return res.status(401).json({error: 'Unauthorized. You must be logged to play other rounds.'});
+    }
+
+    const options = [];
+    const ownedCards = await DAO.getOwnedCards(round, gameId, userId);
+    const rates = ownedCards.map(card => card.rate);
+    rates.sort((a, b) => a - b);
+
+    if (rates[0] !== 1)
+      options.push(`1 - ${ rates[0] }`);
+    for (let i = 0; i < rates.length - 1; i++) {
+      options.push(`${ rates[i] } - ${ rates[i + 1] }`);
+    }
+    options.push(`${ rates[rates.length - 1] } - 100`);
+
+    return res.status(200).json({ options });
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
