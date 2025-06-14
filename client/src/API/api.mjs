@@ -147,8 +147,8 @@ const getNextCard = async (round, gameId) => {
   }
 }
 
-const checkEndRound = async (choice, round, gameId) => {
-  const response = await fetch(SERVER_URL + `/api/games/${ gameId }/rounds/${ round }`, {
+const checkEndRound = async (choice, gameId) => {
+  const response = await fetch(SERVER_URL + `/api/games/${ gameId }/rounds/last`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',

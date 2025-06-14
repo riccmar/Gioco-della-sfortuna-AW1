@@ -1,6 +1,5 @@
 import sqlite from 'sqlite3';
 import crypto from 'crypto';
-import dayjs from 'dayjs';
 
 import { Models } from './GameModels.mjs';
 
@@ -41,13 +40,10 @@ const getUser = (email, password) => {
   });
 }
 
-const createMatch = (userId) => {
+const createMatch = (userId, date, win) => {
   return new Promise((resolve, reject) => {
     const sql1 = `INSERT INTO game (date, win, userId) 
                   VALUES (?, ?, ?)`;
-
-    const date = dayjs().format('YYYY-MM-DD HH:mm:ss');
-    const win = 0;
 
     db.run(sql1, [date, win, userId], function(err) {
       if (err) {
@@ -59,14 +55,11 @@ const createMatch = (userId) => {
   });
 }
 
-const createInitialRound = (gameId, userId) => {
+const createInitialRound = (gameId, userId, date, win) => {
   return new Promise((resolve, reject) => {
     const sql1 = `SELECT * 
                   FROM card 
                   ORDER BY RANDOM() LIMIT 3`;
-
-    const date = dayjs().format('YYYY-MM-DD HH:mm:ss');
-    const win = 1;
 
     db.each(sql1, [], (err, row) => {
       if (err) {
@@ -76,6 +69,36 @@ const createInitialRound = (gameId, userId) => {
                       VALUES (?, ?, ?, ?, ?, ?, ?)`;
 
         db.run(sql2, [0, date, date, win, gameId, row.idC, userId], function(err) {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(this.lastID);
+          }
+        });
+      }
+    });
+  });
+}
+
+const createRound = (round, gameId, userId, date, win) => {
+  return new Promise((resolve, reject) => {
+    const sql1 = `SELECT cardId 
+                  FROM round 
+                  WHERE gameId = ? AND userId = ? AND cardId <> 0`;
+    const sql2 = `SELECT *
+                  FROM card 
+                  WHERE idC NOT IN (${sql1}) 
+                  ORDER BY RANDOM() 
+                  LIMIT 1`;
+
+    db.each(sql2, [gameId, userId], (err, row) => {
+      if (err) {
+        reject(err);
+      } else {
+        const sql3 = `INSERT INTO round (number, start, end, win, gameId, cardId, userId) 
+                      VALUES (?, ?, ?, ?, ?, ?, ?)`;
+
+        db.run(sql3, [round, date, 0, win, gameId, row.idC, userId], function(err) {
           if (err) {
             reject(err);
           } else {
@@ -106,34 +129,36 @@ const takeLastRound = (gameId, userId) => {
   });
 }
 
-const createRound = (round, gameId, userId) => {
+const getRoundStartDate = (round, gameId, userId) => {
   return new Promise((resolve, reject) => {
-    const sql1 = `SELECT cardId 
-                  FROM round 
-                  WHERE gameId = ? AND userId = ? AND cardId <> 0`;
-    const sql2 = `SELECT *
-                  FROM card 
-                  WHERE idC NOT IN (${sql1}) 
-                  ORDER BY RANDOM() 
-                  LIMIT 1`;
+    const sql1 = `SELECT start
+                  FROM round
+                  WHERE number = ? AND gameId = ? AND userId = ?`;
 
-    db.each(sql2, [gameId, userId], (err, row) => {
+    db.get(sql1, [round, gameId, userId], (err, row) => { 
+      if (err) {
+        reject(err);
+      } else if (row === undefined) {
+        reject({message: "Round not found."});
+      } else {
+        resolve(row.start);
+      }
+    }
+    );
+  });
+}
+
+const updateRound = (round, gameId, userId, endDate, win) => {
+  return new Promise((resolve, reject) => {
+    const sql1 = `UPDATE round 
+                  SET end = ?, win = ? 
+                  WHERE number = ? AND gameId = ? AND userId = ?`;
+    console.log(round, gameId, userId, endDate, win);
+    db.run(sql1, [endDate, win, round, gameId, userId], function(err) {
       if (err) {
         reject(err);
       } else {
-        const sql3 = `INSERT INTO round (number, start, end, win, gameId, cardId, userId) 
-                      VALUES (?, ?, ?, ?, ?, ?, ?)`;
-
-        const date = dayjs().format('YYYY-MM-DD HH:mm:ss');
-        const win = 0;
-
-        db.run(sql3, [round, date, 0, win, gameId, row.idC, userId], function(err) {
-          if (err) {
-            reject(err);
-          } else {
-            resolve(this.lastID);
-          }
-        });
+        resolve(this.changes);
       }
     });
   });
@@ -198,22 +223,6 @@ const getCardByRound = (round, gameId, userId) => {
   });
 }
 
-const updateRound = (round, gameId, userId, win) => {
-  return new Promise((resolve, reject) => {
-    const sql1 = `UPDATE round 
-                  SET win = ? 
-                  WHERE number = ? AND gameId = ? AND userId = ?`;
 
-    db.run(sql1, [win, round, gameId, userId], function(err) {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(this.lastID);
-      }
-    });
-  });
-}
-
-
-const DAO = { getUser, createMatch, createInitialRound, takeLastRound, createRound, getOwnedCards, getNextCard, getCardByRound, updateRound };
+const DAO = { getUser, createMatch, createInitialRound, createRound, takeLastRound, updateRound, getRoundStartDate, getOwnedCards, getNextCard, getCardByRound };
 export { DAO };

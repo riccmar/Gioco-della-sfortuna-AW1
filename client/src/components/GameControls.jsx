@@ -49,7 +49,7 @@ function Choices(props) {
       <div className="d-flex justify-content-between mt-3">
         <h4 className="mb-0">{ `Round: ${ props.round }` }</h4>
 
-        <h4 className="mb-0">{ `Timer: 30 s` }</h4>
+        <h4 className="mb-0">{ `Timer: ${ props.timeLeft } s` }</h4>
       </div>
 
       <NewChioce round={ props.round } endRound={ props.endRound }/>

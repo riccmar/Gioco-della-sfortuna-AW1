@@ -5,6 +5,7 @@ import LocalStrategy from 'passport-local';
 import session from 'express-session';
 import cors from 'cors';
 import { check, validationResult } from 'express-validator';
+import dayjs from 'dayjs';
 
 import { DAO } from './dao.mjs';
 
@@ -82,9 +83,11 @@ app.post('/api/games/new', async (req, res) => {
   const userId = req.isAuthenticated() ? req.user.id : 0;
 
   try {
-    const gameId = await DAO.createMatch(userId);
+    const date = dayjs().format('YYYY-MM-DD HH:mm:ss');
+
+    const gameId = await DAO.createMatch(userId, date, 0);
     
-    await DAO.createInitialRound(gameId, userId);
+    await DAO.createInitialRound(gameId, userId, date, 1);
 
     return res.status(201).json({ gameId });
   } catch (err) {
@@ -104,7 +107,10 @@ app.post('/api/games/:gameId/rounds/new', async (req, res) => {
       return res.status(401).json({error: 'Unauthorized. You must be logged to play other rounds.'})
     }
 
-    await DAO.createRound(round, gameId, userId);
+    const date = dayjs().format('YYYY-MM-DD HH:mm:ss');
+    const win = 0;
+
+    await DAO.createRound(round, gameId, userId, date, win);
 
     return res.status(201).json({ round });
   } catch (err) {
@@ -164,8 +170,8 @@ app.get('/api/games/:gameId/rounds/:round/cards/next',  async (req, res) => {
   }
 });
 
-// PUT /api/games/:gameId/rounds/:round
-app.put('/api/games/:gameId/rounds/:round', [
+// PUT /api/games/:gameId/rounds/last
+app.put('/api/games/:gameId/rounds/last', [
   check('choice').notEmpty()
 ], async (req, res) => {
   const errors = validationResult(req);
@@ -173,26 +179,38 @@ app.put('/api/games/:gameId/rounds/:round', [
     return res.status(400).json({ error: errors.array() });
   }
 
+  const roundEndDate = dayjs();
   const userId = req.isAuthenticated() ? req.user.id : 0;
   const gameId = req.params.gameId;
-  const round = req.params.round;
+  const round = await DAO.takeLastRound(gameId, userId);
   const choice = req.body.choice;
-  const [min, max] = choice.split('-').map(Number);
 
   try {
     if (!req.isAuthenticated() && round > 1) {
       return res.status(401).json({error: 'Unauthorized. You must be logged to play other rounds.'});
     }
 
+    const roundStartDateString = await DAO.getRoundStartDate(round, gameId, userId);
+    const roundStartDate = dayjs(roundStartDateString, 'YYYY-MM-DD HH:mm:ss');
+
+    const difference = roundEndDate.diff(roundStartDate, 'second');
+    if (difference > 30 || choice === 'timeout') {
+      await DAO.updateRound(round, gameId, userId, roundEndDate.format('YYYY-MM-DD HH:mm:ss'), 0);
+      return res.status(200).json({ message: 'Time up! Round lost. Card discarded.', type: 'danger' });
+    }
+
+    const [min, max] = choice.split('-').map(Number);
+    
     const hiddenCard = await DAO.getCardByRound(round, gameId, userId);
 
     if (hiddenCard.rate > min && hiddenCard.rate < max) {
-      await DAO.updateRound(round, gameId, userId, 1);
-      return res.status(200).json({ message: 'Correct Answer! Round won. The card has been added to yours.', type: 'success' });
+
+      await DAO.updateRound(round, gameId, userId, roundEndDate.format('YYYY-MM-DD HH:mm:ss'), 1);
+      return res.status(200).json({ message: 'Correct Answer! Round won. Card added to yours.', type: 'success' });
     } else {
+      await DAO.updateRound(round, gameId, userId, roundEndDate.format('YYYY-MM-DD HH:mm:ss'), 0);
       return res.status(200).json({ message: 'Wrong Answer! Round lost. Card discarded. ', type: 'danger' });
     }
-
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
