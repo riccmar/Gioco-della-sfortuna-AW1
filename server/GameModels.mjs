@@ -6,11 +6,10 @@ function User(id, name, email) {
   this.email = email;
 }
 
-function Game(id, date, win, userId ) {
+function Game(id, date, win) {
   this.id = id;
   this.date = dayjs(date);
   this.win = win;
-  this.userId = userId;
 }
 
 function Card(id, name, path, rate) {

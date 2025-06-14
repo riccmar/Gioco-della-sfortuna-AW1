@@ -30,7 +30,7 @@ function ChoiceForm(props) {
     }
 
     takeOptions();
-  }, []);
+  }, [ props.round ]);
 
   return (
     <>

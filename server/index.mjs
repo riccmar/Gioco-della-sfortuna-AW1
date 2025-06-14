@@ -296,6 +296,24 @@ app.get('/api/games/:gameId/result', async (req, res) => {
   }
 });
 
+app.get('/api/games/list', isLoggedIn, async (req, res) => {
+  const userId = req.user.id;
+
+  try {
+    const games = await DAO.getUserMatches(userId);
+
+    for (let game of games) {
+      game.date = game.date.format('dddd, DD MMMM YYYY, HH:mm');
+      game.rounds = await DAO.getUserMatchRounds(game.id, userId);
+      console.log(game.rounds);
+    }
+
+    return res.status(200).json(games);
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
 
 /* activate the server */
 app.listen(port, () => {

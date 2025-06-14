@@ -220,6 +220,24 @@ const getMatchResult = async (gameId) => {
   }
 }
 
+const getMatchList = async () => {
+  const response = await fetch(SERVER_URL + '/api/games/list', {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include',
+  });
 
-const API = { logIn, logOut, getUserInfo, createMatch, newRound, getCurrentRound, getOwnedCards, getNextCard, getOptions, checkEndRound, checkEndMatch, getMatchResult };
+  if (response.ok) {
+    const matches = await response.json();
+    return matches;
+  } else {
+    const errMessage = await response.json();
+    throw errMessage;
+  }
+}
+
+
+const API = { logIn, logOut, getUserInfo, createMatch, newRound, getCurrentRound, getOwnedCards, getNextCard, getOptions, checkEndRound, checkEndMatch, getMatchResult, getMatchList };
 export { API };

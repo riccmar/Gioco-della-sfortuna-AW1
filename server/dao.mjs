@@ -2,6 +2,7 @@ import sqlite from 'sqlite3';
 import crypto from 'crypto';
 
 import { Models } from './GameModels.mjs';
+import { get } from 'http';
 
 // open the database
 const db = new sqlite.Database('sh.sqlite', (err) => {
@@ -275,6 +276,47 @@ const getWrongChoices = (round, gameId, userId) => {
   });
 }
 
+const getUserMatches = (userId) => {
+  return new Promise((resolve, reject) => {
+    const sql1 = `SELECT idG, date, win
+                  FROM game
+                  WHERE userId = ? AND win <> -1
+                  ORDER BY date`;
 
-const DAO = { getUser, createMatch, updateMatch, getMatchResult, createInitialRound, createRound, takeLastRound, updateRound, getRoundStartDate, getOwnedCards, getNextCard, getCardByRound, getWrongChoices };
+    db.all(sql1, [userId], (err, rows) => {
+      if (err) {
+        reject(err);
+      } else {
+        const games = rows.map(row => new Models.Game(row.idG, row.date, row.win));
+        resolve(games);
+      }
+    });
+  });
+}
+
+const getUserMatchRounds = (gameId, userId) => {
+  return new Promise((resolve, reject) => {
+    const sql1 = `SELECT round.number, round.win, card.name
+                  FROM round
+                  JOIN card ON round.cardId = card.idC
+                  WHERE round.gameId = ? AND round.userId = ?
+                  ORDER BY number`;
+
+    db.all(sql1, [gameId, userId], (err, rows) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(rows);
+      }
+    });
+  });
+}
+
+
+const DAO = { getUser, 
+              createMatch, updateMatch, getMatchResult,
+              createInitialRound, createRound, takeLastRound, updateRound, getRoundStartDate, 
+              getOwnedCards, getNextCard, getCardByRound, 
+              getWrongChoices,
+              getUserMatches, getUserMatchRounds };
 export { DAO };

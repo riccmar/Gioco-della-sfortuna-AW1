@@ -47,7 +47,7 @@ function LoginForm(props) {
   return (
     <>
       <Row className="justify-content-center m-3">
-        <Col md={ 4 } className="border rounded p-3">
+        <Col md={ 4 } className="shadow rounded p-3">
           <h2 className="text-center mb-3">Login</h2>
 
           { alertVisible && <Alert variant="danger" onClose={() => setAlertVisible(false)} dismissible>{ state.error }</Alert> }
