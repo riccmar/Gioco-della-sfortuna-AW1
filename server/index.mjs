@@ -305,7 +305,6 @@ app.get('/api/games/list', isLoggedIn, async (req, res) => {
     for (let game of games) {
       game.date = game.date.format('dddd, DD MMMM YYYY, HH:mm');
       game.rounds = await DAO.getUserMatchRounds(game.id, userId);
-      console.log(game.rounds);
     }
 
     return res.status(200).json(games);
