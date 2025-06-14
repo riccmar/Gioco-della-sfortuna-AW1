@@ -71,16 +71,16 @@ function Choices(props) {
       <div className="d-flex justify-content-between align-items-center mt-3">
         <h4 className="mb-0">{ `Round: ${ props.round }` }</h4>
 
-          <CountdownCircleTimer
-            isPlaying
-            duration={ 30 }
-            colors={['#408558', '#F7B801', '#A30000', '#A30000']}
-            colorsTime={[12, 5, 2, 0]}
-            size={ 50 }
-            strokeWidth = { 6 }
-          >
-            {({ remainingTime }) => remainingTime}
-          </CountdownCircleTimer>
+        <CountdownCircleTimer
+          isPlaying
+          duration={ 30 }
+          colors={['#408558', '#F7B801', '#A30000', '#A30000']}
+          colorsTime={[12, 5, 2, 0]}
+          size={ 50 }
+          strokeWidth = { 6 }
+        >
+          {({ remainingTime }) => remainingTime}
+        </CountdownCircleTimer>
         
       </div>
 

@@ -4,7 +4,6 @@ import { Alert, Button, Modal } from "react-bootstrap";
 function Home(props) {
   return (
     <>
-      <div>
         { 
           props.message && props.message.msg && props.message.type &&
           <Alert variant={ props.message.type } className="m-3" onClose={ () => props.setMessage('') } dismissible> 
@@ -13,7 +12,6 @@ function Home(props) {
         }
 
         <HomeIntro handleStartMatch={ props.handleStartMatch } />
-      </div>
     </>
   );
 }

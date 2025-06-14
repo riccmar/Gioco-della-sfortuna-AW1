@@ -9,6 +9,7 @@ import { Home } from "./components/Home";
 import { Game } from "./components/Game";
 import { LoginForm } from "./components/AuthComponents";
 import { NotFound } from "./components/NotFound";
+import { Profile } from "./components/Profile";
 
 import { API } from "./API/api.mjs";
 
@@ -77,7 +78,7 @@ function App() {
 
             <Route path='/login' element={ loggedIn ? <Navigate replace to='/' /> : <LoginForm handleLogin={ handleLogin } /> } />
 
-            <Route path='/profile' element={ loggedIn ? <NotFound /> : <Navigate replace to='/login' /> } />
+            <Route path='/profile' element={ loggedIn ? <Profile /> : <Navigate replace to='/login' /> } />
 
             <Route path='*' element={ <NotFound /> } /> {/* TODO: 404 Not Found */}
           </Route>
