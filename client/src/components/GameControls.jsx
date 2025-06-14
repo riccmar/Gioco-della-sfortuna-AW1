@@ -2,9 +2,31 @@ import { useContext } from "react";
 import { Button, Card } from "react-bootstrap";
 import { useNavigate } from "react-router";
 
+import { CountdownCircleTimer } from 'react-countdown-circle-timer'
+
 import { UserContext } from "../contexts/userContext.mjs";
 
 import { ChoiceForm } from "./ChoiceForm";
+
+function EndMatch(props) {
+  const navigate = useNavigate();
+
+  return (
+    <div className="text-center shadow rounded p-3">
+      <h4 className="mb-0">Are you ready for another Match?</h4>
+      
+      <div className="d-flex justify-content-center">
+        <Button variant="warning" size="lg" className="shadow mt-3 me-3" onClick={ () => navigate('/') }>
+          Home
+        </Button>
+
+        <Button variant="success" size="lg" className="shadow mt-3" onClick={ () => props.handleStartMatch() }>
+          New Match
+        </Button>
+      </div>
+    </div>
+  );
+}
 
 function StartRound(props) {
   const user = useContext(UserContext);
@@ -46,10 +68,20 @@ function Choices(props) {
     <div className="d-flex flex-column h-100 shadow rounded p-3">
       <NextCard nextCard={ props.nextCard } />
 
-      <div className="d-flex justify-content-between mt-3">
+      <div className="d-flex justify-content-between align-items-center mt-3">
         <h4 className="mb-0">{ `Round: ${ props.round }` }</h4>
 
-        <h4 className="mb-0">{ `Timer: ${ props.timeLeft } s` }</h4>
+          <CountdownCircleTimer
+            isPlaying
+            duration={ 30 }
+            colors={['#408558', '#F7B801', '#A30000', '#A30000']}
+            colorsTime={[12, 5, 2, 0]}
+            size={ 50 }
+            strokeWidth = { 6 }
+          >
+            {({ remainingTime }) => remainingTime}
+          </CountdownCircleTimer>
+        
       </div>
 
       <NewChioce round={ props.round } endRound={ props.endRound }/>
@@ -88,4 +120,4 @@ function NewChioce(props) {
   );
 }
 
-export { StartRound, Choices };
+export { EndMatch, StartRound, Choices };

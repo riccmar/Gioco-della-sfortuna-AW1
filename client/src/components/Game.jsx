@@ -5,20 +5,17 @@ import { Row, Col, Alert } from "react-bootstrap";
 import { API } from "../API/api.mjs";
 
 import { OwnedCards } from "./OwnedCards";
-import { Choices, StartRound } from "./GameControls";
+import { Choices, StartRound, EndMatch } from "./GameControls";
 
 const ROUND_TIME = 30;
 
-function Game() {
+function Game(props) {
   const [ownedCards, setOwnedCards] = useState([]); 
   const [nextCard, setNextCard] = useState();
-  
   const [round, setRound] = useState(0);
   const [roundStarted, setRoundStarted] = useState(false);
-
   const [roundTimer, setRoundTimer] = useState(null);
-  const [timeLeft, setTimeLeft] = useState(ROUND_TIME);
-  
+  const [endGame, setEndGame] = useState(false);
   const [message, setMessage] = useState({ msg: '', type: '' });
   const { gameId } = useParams();
 
@@ -26,8 +23,6 @@ function Game() {
     try {
       const nextRound = await API.newRound(gameId);      
       setRound(nextRound);
-
-      setTimeLeft(ROUND_TIME);
 
       if (roundTimer) {
         clearTimeout(roundTimer);
@@ -49,10 +44,15 @@ function Game() {
         clearTimeout(roundTimer);
         setRoundTimer(null);
       }
-      setTimeLeft(ROUND_TIME);
       
       const result = await API.checkEndRound(choice, gameId);
       setMessage({ msg: result.message, type: result.type });
+
+      const endMatch = await API.checkEndMatch(gameId);
+      if (endMatch.end) {
+        setEndGame(true);
+        setMessage({ msg: endMatch.message, type: endMatch.type });
+      }
 
       setRoundStarted(false);
     } catch (error) {
@@ -65,6 +65,9 @@ function Game() {
       const roundCurrent = await API.getCurrentRound(gameId);
       setRound(roundCurrent);
 
+      const resultMatch = await API.getMatchResult(gameId);
+      setEndGame(resultMatch);
+
       const cards = await API.getOwnedCards(roundCurrent, gameId);
       setOwnedCards(cards);
 
@@ -76,18 +79,6 @@ function Game() {
 
     takeCards();
   }, [ round, roundStarted ]);
-
-  useEffect(() => {
-    if (!roundStarted || timeLeft <= 0) {
-      return;
-    }
-
-    const timerId = setInterval(() => {
-      setTimeLeft(prevTime => prevTime - 1);
-    }, 1000);
-
-    return () => clearInterval(timerId);
-  }, [ roundStarted, timeLeft ]);
 
   return (
     <>
@@ -102,11 +93,18 @@ function Game() {
 
         <Col sm={3} className="pe-0">
         {
-          roundStarted ?
-            <Choices timeLeft={ timeLeft } round={ round } nextCard={ nextCard } endRound={ handleEndRound }/> 
+          endGame ?
+            <EndMatch handleStartMatch={ props.handleStartMatch }/>
           :
-            <StartRound round={ round } startRound={ handleStartRound } message={ message } setMessage={ setMessage }/>
-        }            
+          <>
+            {
+              roundStarted ?
+                <Choices round={ round } nextCard={ nextCard } endRound={ handleEndRound }/> 
+              :
+                <StartRound round={ round } startRound={ handleStartRound } message={ message } setMessage={ setMessage }/>
+            }
+          </>
+        }
         </Col>
       </Row>
     </>

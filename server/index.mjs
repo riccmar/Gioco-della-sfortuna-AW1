@@ -85,7 +85,7 @@ app.post('/api/games/new', async (req, res) => {
   try {
     const date = dayjs().format('YYYY-MM-DD HH:mm:ss');
 
-    const gameId = await DAO.createMatch(userId, date, 0);
+    const gameId = await DAO.createMatch(userId, date, -1);
     
     await DAO.createInitialRound(gameId, userId, date, 1);
 
@@ -105,6 +105,10 @@ app.post('/api/games/:gameId/rounds/new', async (req, res) => {
     round++;
     if (!req.isAuthenticated() && round > 1) {
       return res.status(401).json({error: 'Unauthorized. You must be logged to play other rounds.'})
+    }
+
+    if (round > 5) {
+      return res.status(400).json({ error: 'You cannot play more than 5 Rounds.' });
     }
 
     const date = dayjs().format('YYYY-MM-DD HH:mm:ss');
@@ -170,6 +174,35 @@ app.get('/api/games/:gameId/rounds/:round/cards/next',  async (req, res) => {
   }
 });
 
+// GET /api/games/:gameId/rounds/:round/options
+app.get('/api/games/:gameId/rounds/:round/options', async (req, res) => {
+  const gameId = req.params.gameId;
+  const round = req.params.round;
+  const userId = req.isAuthenticated() ? req.user.id : 0;
+
+  try {
+    if (!req.isAuthenticated() && round > 1) {
+      return res.status(401).json({error: 'Unauthorized. You must be logged to play other rounds.'});
+    }
+
+    const options = [];
+    const ownedCards = await DAO.getOwnedCards(round, gameId, userId);
+    const rates = ownedCards.map(card => card.rate);
+    rates.sort((a, b) => a - b);
+
+    if (rates[0] !== 1)
+      options.push(`1 - ${ rates[0] }`);
+    for (let i = 0; i < rates.length - 1; i++) {
+      options.push(`${ rates[i] } - ${ rates[i + 1] }`);
+    }
+    options.push(`${ rates[rates.length - 1] } - 100`);
+
+    return res.status(200).json({ options });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
 // PUT /api/games/:gameId/rounds/last
 app.put('/api/games/:gameId/rounds/last', [
   check('choice').notEmpty()
@@ -204,7 +237,6 @@ app.put('/api/games/:gameId/rounds/last', [
     const hiddenCard = await DAO.getCardByRound(round, gameId, userId);
 
     if (hiddenCard.rate > min && hiddenCard.rate < max) {
-
       await DAO.updateRound(round, gameId, userId, roundEndDate.format('YYYY-MM-DD HH:mm:ss'), 1);
       return res.status(200).json({ message: 'Correct Answer! Round won. Card added to yours.', type: 'success' });
     } else {
@@ -216,29 +248,49 @@ app.put('/api/games/:gameId/rounds/last', [
   }
 });
 
-app.get('/api/games/:gameId/rounds/:round/options', async (req, res) => {
+// PUT /api/games/:gameId/end
+app.put('/api/games/:gameId/end', async (req, res) => {
   const gameId = req.params.gameId;
-  const round = req.params.round;
   const userId = req.isAuthenticated() ? req.user.id : 0;
 
   try {
-    if (!req.isAuthenticated() && round > 1) {
-      return res.status(401).json({error: 'Unauthorized. You must be logged to play other rounds.'});
+    const rounds = await DAO.takeLastRound(gameId, userId);
+    const ownedCards = await DAO.getOwnedCards(rounds, gameId, userId);
+    const wrongChoices = await DAO.getWrongChoices(rounds, gameId, userId);
+
+    if (ownedCards.length === 6) {
+      await DAO.updateMatch(gameId, userId, 1);
+      return res.status(200).json({ end: true, message: 'Correct answer! You won the match!', type: 'success' });
+    } else if (rounds >= 5 || wrongChoices >= 3) {
+      await DAO.updateMatch(gameId, userId, 0);
+      return res.status(200).json({ end: true, message: 'Wrong answer! You lost the match!', type: 'danger' });
     }
 
-    const options = [];
-    const ownedCards = await DAO.getOwnedCards(round, gameId, userId);
-    const rates = ownedCards.map(card => card.rate);
-    rates.sort((a, b) => a - b);
+    return res.status(200).json({ end: false });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+});
 
-    if (rates[0] !== 1)
-      options.push(`1 - ${ rates[0] }`);
-    for (let i = 0; i < rates.length - 1; i++) {
-      options.push(`${ rates[i] } - ${ rates[i + 1] }`);
+// GET /api/games/:gameId/result
+app.get('/api/games/:gameId/result', async (req, res) => {
+  const gameId = req.params.gameId;
+  const userId = req.isAuthenticated() ? req.user.id : 0;
+
+  let result = false;
+
+  try {
+    if (userId === 0) {
+      return res.status(200).json({ result });
     }
-    options.push(`${ rates[rates.length - 1] } - 100`);
 
-    return res.status(200).json({ options });
+    const win = await DAO.getMatchResult(gameId);
+    if (win === 1 || win === 0)
+      result = true;
+    else
+      result = false;
+
+    return res.status(200).json({ result });
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }

@@ -147,6 +147,24 @@ const getNextCard = async (round, gameId) => {
   }
 }
 
+const getOptions = async (round, gameId) => {
+  const response = await fetch(SERVER_URL + `/api/games/${ gameId }/rounds/${ round }/options`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include',
+  });
+
+  if (response.ok) {
+    const res = await response.json();
+    return res.options;
+  } else {
+    const errMessage = await response.json();
+    throw errMessage;
+  }
+}
+
 const checkEndRound = async (choice, gameId) => {
   const response = await fetch(SERVER_URL + `/api/games/${ gameId }/rounds/last`, {
     method: 'PUT',
@@ -166,8 +184,26 @@ const checkEndRound = async (choice, gameId) => {
   }
 }
 
-const getOptions = async (round, gameId) => {
-  const response = await fetch(SERVER_URL + `/api/games/${ gameId }/rounds/${ round }/options`, {
+const checkEndMatch = async (gameId) => {
+  const response = await fetch(SERVER_URL + `/api/games/${ gameId }/end`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include',
+  });
+
+  if (response.ok) {
+    const res = await response.json();
+    return res;
+  } else {
+    const errMessage = await response.json();
+    throw errMessage;
+  }
+}
+
+const getMatchResult = async (gameId) => {
+  const response = await fetch(SERVER_URL + `/api/games/${ gameId }/result`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
@@ -177,7 +213,7 @@ const getOptions = async (round, gameId) => {
 
   if (response.ok) {
     const res = await response.json();
-    return res.options;
+    return res.result;
   } else {
     const errMessage = await response.json();
     throw errMessage;
@@ -185,5 +221,5 @@ const getOptions = async (round, gameId) => {
 }
 
 
-const API = { logIn, logOut, getUserInfo, createMatch, newRound, getCurrentRound, getOwnedCards, getNextCard, checkEndRound, getOptions };
+const API = { logIn, logOut, getUserInfo, createMatch, newRound, getCurrentRound, getOwnedCards, getNextCard, getOptions, checkEndRound, checkEndMatch, getMatchResult };
 export { API };

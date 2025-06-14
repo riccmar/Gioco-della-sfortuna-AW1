@@ -55,6 +55,40 @@ const createMatch = (userId, date, win) => {
   });
 }
 
+const updateMatch = (gameId, userId, win) => {
+  return new Promise((resolve, reject) => {
+    const sql1 = `UPDATE game 
+                  SET win = ? 
+                  WHERE idG = ? AND userId = ?`;
+
+    db.run(sql1, [win, gameId, userId], function(err) {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(this.changes);
+      }
+    });
+  });
+}
+
+const getMatchResult = (gameId) => {
+  return new Promise((resolve, reject) => {
+    const sql1 = `SELECT win 
+                  FROM game 
+                  WHERE idG = ?`;
+
+    db.get(sql1, [gameId], (err, row) => {
+      if (err) {
+        reject(err);
+      } else if (row === undefined) {
+        reject({message: "Game not found."});
+      } else {
+        resolve(row.win);
+      }
+    });
+  });
+}
+
 const createInitialRound = (gameId, userId, date, win) => {
   return new Promise((resolve, reject) => {
     const sql1 = `SELECT * 
@@ -153,7 +187,7 @@ const updateRound = (round, gameId, userId, endDate, win) => {
     const sql1 = `UPDATE round 
                   SET end = ?, win = ? 
                   WHERE number = ? AND gameId = ? AND userId = ?`;
-    console.log(round, gameId, userId, endDate, win);
+
     db.run(sql1, [endDate, win, round, gameId, userId], function(err) {
       if (err) {
         reject(err);
@@ -223,6 +257,24 @@ const getCardByRound = (round, gameId, userId) => {
   });
 }
 
+const getWrongChoices = (round, gameId, userId) => {
+  return new Promise((resolve, reject) => {
+    const sql1 = `SELECT COUNT(*) as wrongChoices
+                  FROM round
+                  WHERE round.number <= ? AND round.gameId = ? AND round.userId = ? AND round.win = 0`;
+    
+    db.get(sql1, [round, gameId, userId], (err, rows) => {
+      if (err) {
+        reject(err);
+      } else if (rows === undefined) {
+        reject({message: "Wrong choices not found."});
+      } else {
+        resolve(rows.wrongChoices);
+      }
+    });
+  });
+}
 
-const DAO = { getUser, createMatch, createInitialRound, createRound, takeLastRound, updateRound, getRoundStartDate, getOwnedCards, getNextCard, getCardByRound };
+
+const DAO = { getUser, createMatch, updateMatch, getMatchResult, createInitialRound, createRound, takeLastRound, updateRound, getRoundStartDate, getOwnedCards, getNextCard, getCardByRound, getWrongChoices };
 export { DAO };

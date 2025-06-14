@@ -16,6 +16,7 @@ function App() {
   const [loggedIn, setLoggedIn] = useState(false);
   const [user, setUser] = useState('');
   const [message, setMessage] = useState({ msg: '', type: '' });
+  const [gameId, setGameId] = useState(-1);
 
   const navigate = useNavigate();
 
@@ -52,11 +53,13 @@ function App() {
 
   const handleStartMatch = async () => {
     try {
-      const gameId = await API.createMatch();
-      if (gameId) {
-        navigate(`/match/${ gameId }`);
+      const gId = await API.createMatch();
+      if (gId) {
+        setGameId(gId);
+        navigate(`/match/${ gId }`);
       } else {
         setMessage({ msg: 'Failed to start match.', type: 'danger' });
+        navigate(`/`);
       }      
     } catch(err) {
       setMessage({ msg: `Error: ${ err.error }`, type: 'danger' });
@@ -67,10 +70,10 @@ function App() {
     <LoggedInContext.Provider value={ loggedIn }>
       <UserContext.Provider value={ user }>
         <Routes>
-          <Route element={ <DefaultLayout handleLogout={ handleLogout }/> }>
+          <Route element={ <DefaultLayout handleLogout={ handleLogout } /> }>
             <Route path='/' element={ <Home message={ message } setMessage={ setMessage } handleStartMatch={ handleStartMatch } /> } />
 
-            <Route path='/match/:gameId' element={ <Game /> } />
+            <Route path='/match/:gameId' element={ <Game key={ gameId } handleStartMatch={ handleStartMatch } /> } />
 
             <Route path='/login' element={ loggedIn ? <Navigate replace to='/' /> : <LoginForm handleLogin={ handleLogin } /> } />
 

@@ -2,7 +2,7 @@ import { Card, Col, Row } from "react-bootstrap";
 
 function OwnedCards(props) {
   const cards = props.cards.map(card =>
-    <Col key={ card.id } className="d-flex align-items-center mt-0">
+    <Col key={ card.id } className="d-flex align-items-center h-100 mt-0">
       <GameCard card= { card }/>
     </Col>
   );
