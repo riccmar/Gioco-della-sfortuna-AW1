@@ -16,11 +16,11 @@ function EndMatch(props) {
       <h4 className="mb-0">Are you ready for another Match?</h4>
       
       <div className="d-flex justify-content-center">
-        <Button variant="warning" size="lg" className="shadow mt-3 me-3" onClick={ () => navigate('/') }>
+        <Button variant="warning" size="lg" className="shadow mt-2 me-3" onClick={ () => navigate('/') }>
           Home
         </Button>
 
-        <Button variant="success" size="lg" className="shadow mt-3" onClick={ () => props.handleStartMatch() }>
+        <Button variant="success" size="lg" className="shadow mt-2" onClick={ () => props.handleStartMatch() }>
           New Match
         </Button>
       </div>
@@ -46,16 +46,16 @@ function StartRound(props) {
       {
         props.round === 1 && !user ?
           <div className="d-flex justify-content-center">
-            <Button variant="warning" size="lg" className="shadow mt-3 me-3" onClick={ () => navigate('/') }>
+            <Button variant="warning" size="lg" className="shadow mt-2 me-3" onClick={ () => navigate('/') }>
               Home
             </Button>
 
-            <Button variant="success" size="lg" className="shadow mt-3" onClick={ () => navigate('/login') }>
+            <Button variant="success" size="lg" className="shadow mt-2" onClick={ () => navigate('/login') }>
               Login
             </Button>
           </div>
         :
-          <Button variant="success" size="lg" className="shadow mt-3" onClick={ () => props.startRound() }>
+          <Button variant="success" size="lg" className="shadow mt-2" onClick={ () => { props.startRound(); props.setMessage({msg: '', type: ''}) } }>
             Start Round
           </Button>
       }
@@ -81,7 +81,6 @@ function Choices(props) {
         >
           {({ remainingTime }) => remainingTime}
         </CountdownCircleTimer>
-        
       </div>
 
       <NewChioce round={ props.round } endRound={ props.endRound }/>
@@ -96,7 +95,7 @@ function NextCard(props) {
 
       {
         props.nextCard ?
-          <Card className="h-auto w-75 shadow rounded mt-1 p-2">
+          <Card className="h-auto w-75 shadow rounded mt-0 p-2">
             <Card.Img className="img-card rounded" variant="top" src={ props.nextCard.path } />
               
             <Card.Body className="p-0">

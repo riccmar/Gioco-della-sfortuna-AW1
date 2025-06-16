@@ -91,7 +91,16 @@ function MatchItem(props) {
             {
               props.match.rounds.map((round, i) =>
                 <tr key={ i }>
-                  <td className="text-center"><b>{ round.number }</b></td>
+                  <td className="text-center">
+                    <b>
+                      { 
+                        round.number === 0 ?
+                          "-"
+                        :
+                          round.number 
+                      }
+                    </b>
+                  </td>
                   <td>{ round.name }</td>
                   <td>
                     { 

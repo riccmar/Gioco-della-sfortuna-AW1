@@ -94,14 +94,14 @@ function Game(props) {
         <Col sm={3} className="pe-0">
         {
           endGame ?
-            <EndMatch handleStartMatch={ props.handleStartMatch }/>
+            <EndMatch handleStartMatch={ props.handleStartMatch } />
           :
           <>
             {
               roundStarted ?
-                <Choices round={ round } nextCard={ nextCard } endRound={ handleEndRound }/> 
+                <Choices round={ round } nextCard={ nextCard } endRound={ handleEndRound } /> 
               :
-                <StartRound round={ round } startRound={ handleStartRound } message={ message } setMessage={ setMessage }/>
+                <StartRound round={ round } startRound={ handleStartRound } setMessage={ setMessage } />
             }
           </>
         }

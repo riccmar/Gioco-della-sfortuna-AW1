@@ -1,6 +1,6 @@
 import { useContext } from "react";
 import { Container, Navbar, Nav } from "react-bootstrap";
-import { Link, useLocation } from "react-router";
+import { Link, useLocation, useParams } from "react-router";
 
 import { LoggedInContext } from "../contexts/userContext.mjs";
 
@@ -9,26 +9,28 @@ import { LoginButton, LogoutButton, ProfileButton } from "./AuthComponents";
 function NavHeader(props) {
   const location = useLocation();
   const loggedIn = useContext(LoggedInContext);
+  const { gameId } = useParams();
 
   return (
     <Navbar bg="primary" data-bs-theme="dark">
         <Container fluid>
           {
-            location.pathname === '/game' ? (
-              <h1 className="text-light mb-0">Stuff Happens</h1>
+            location.pathname === `/match/${ gameId }` ? (
+              <h1 className="text-light mt-1 mb-1">Stuff Happens</h1>
             ) : (
               <Link to={ '/' } className="text-light text-decoration-none">
-                  <h1 className="mb-0">Stuff Happens</h1>
+                  <h1 className="mt-1 mb-1">Stuff Happens</h1>
               </Link>
             )
           }
           
           {
-            location.pathname !== '/login' && !loggedIn && <LoginButton />
+            location.pathname !== '/login' && !loggedIn && location.pathname !== `/match/${ gameId }` &&
+             <LoginButton />
           }
 
           {
-            loggedIn && 
+            loggedIn && location.pathname !== `/match/${ gameId }` && 
             <div className="d-flex gap-3">
                 <LogoutButton handleLogout={ props.handleLogout } />
               {

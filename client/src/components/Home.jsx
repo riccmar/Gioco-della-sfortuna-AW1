@@ -1,12 +1,12 @@
 import { useState } from "react";
-import { Alert, Button, ListGroup, Modal } from "react-bootstrap";
+import { Alert, Button, Col, ListGroup, Modal, Row } from "react-bootstrap";
 
 function Home(props) {
   return (
     <>
         { 
           props.message && props.message.msg && props.message.type &&
-          <Alert variant={ props.message.type } className="m-3" onClose={ () => props.setMessage('') } dismissible> 
+          <Alert variant={ props.message.type } className="m-3 mb-0" onClose={ () => props.setMessage('') } dismissible> 
             { props.message.msg } 
           </Alert> 
         }
@@ -25,7 +25,7 @@ function HomeIntro(props) {
     <div className="intro-home text-center shadow rounded m-3 p-3">
         <h3 className="m-0">We turned years of university pain into a game. Now it's your turn!</h3>
 
-        <Button variant="primary" size="lg" className="shadow mt-3" onClick={() => setShow(true)}>
+        <Button variant="primary" size="lg" className="shadow mt-2" onClick={() => setShow(true)}>
           New Match
         </Button>
 
@@ -53,23 +53,33 @@ function HomeRules() {
     {title: "Win a Round", description: "If your placement is correct, the card is added to your hand."},
     {title: "Challenge", description: "Guess where the new card's hidden index fits among your current cards."},
     {title: "Lose a Round", description: "If you are wrong or time expires, the card is discarded for the rest of the game."},
-    {title: "Losing the Game", description: "You lose if you make three incorrect guesses."}
+    {title: "Losing the Game", description: "You lose if you make three incorrect guesses."},
+    {title: "Extra info", description: "You must be logged to play an entire match, but you can play 1 round without logging in."},
   ];
 
   return (
-    <div className="rules-home shadow rounded m-3 mt-0 p-3">
-      <h4 className="mb-0">Game Rules</h4>
-      
-      <ul className="mt-1 mb-0">
-        {
-          rules.map((rule, index) => 
-            <div key={ index } className="ms-2 me-auto">
-              <b>{ `${ index + 1 }. ${ rule.title }: ` }</b>{ rule.description }
-            </div>
-          )
-        }
-      </ul>
-    </div>
+      <Row className="d-flex justify-content-center m-3 mt-0">
+        <Col sm={ 5 } className="shadow rounded p-3">
+          <h4 className="text-center mb-0"><i className="bi bi-controller me-2"></i>Game Rules</h4>
+          
+          <ListGroup as="ol" numbered>
+            {
+              rules.map(((rule, index) =>
+                <ListGroup.Item
+                  as="li"
+                  key={ index }
+                  className="d-flex justify-content-between align-items-start border-0"
+                >
+                  <div className="ms-2 me-auto">
+                    <div className="fw-bold">{ `${ rule.title }` }</div>
+                    { rule.description }
+                  </div>
+                </ListGroup.Item>
+              ))
+            }
+          </ListGroup>
+        </Col>  
+      </Row>
   );
 }
 
