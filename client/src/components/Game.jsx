@@ -78,7 +78,7 @@ function Game(props) {
     }
 
     takeCards();
-  }, [ round, roundStarted ]);
+  }, [ round, roundStarted, gameId ]);
 
   return (
     <>
@@ -101,7 +101,7 @@ function Game(props) {
               roundStarted ?
                 <Choices round={ round } nextCard={ nextCard } endRound={ handleEndRound } /> 
               :
-                <StartRound round={ round } startRound={ handleStartRound } setMessage={ setMessage } />
+                <StartRound round={ round } startRound={ handleStartRound } setMessage={ setMessage } handleStartMatch={ props.handleStartMatch }/>
             }
           </>
         }

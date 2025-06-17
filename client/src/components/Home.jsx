@@ -1,5 +1,8 @@
-import { useState } from "react";
-import { Alert, Button, Col, ListGroup, Modal, Row } from "react-bootstrap";
+import { useContext, useState } from "react";
+import { Alert, Button, Col, ListGroup, Modal, Nav, Row } from "react-bootstrap";
+
+import { LoggedInContext } from "../contexts/userContext.mjs";
+import { Link } from "react-router";
 
 function Home(props) {
   return (
@@ -19,7 +22,8 @@ function Home(props) {
 }
 
 function HomeIntro(props) {
-  const [show, setShow] = useState(false);;
+  const [show, setShow] = useState(false);
+  const loggedIn = useContext(LoggedInContext);
 
   return (
     <div className="intro-home text-center shadow rounded m-3 p-3">
@@ -34,10 +38,21 @@ function HomeIntro(props) {
             <Modal.Title>Are you ready?</Modal.Title>
           </Modal.Header>
 
-          <Modal.Body className="d-flex justify-content-center">
+          <Modal.Body className="d-flex flex-column justify-content-center align-items-center">
             <Button variant="success" size="lg" className="w-50" onClick={ () => {props.handleStartMatch(); setShow(false); }}>
-              Start
+              Start Match
+              {
+                loggedIn ? "" : " (Demo)"
+              }
             </Button>
+
+            {
+              !loggedIn &&
+              <>
+                <p className="text-secondary mt-2 mb-0"><i className="bi bi-exclamation-triangle me-2"></i>You can play a 1-round Demo Match without logging in.</p>
+                <p className="text-secondary mb-0"><Link to={ '/login' } className="text-secondary">Log in</Link>{` to play a full game.`}</p>
+              </>
+            }
           </Modal.Body>
         </Modal>
     </div>

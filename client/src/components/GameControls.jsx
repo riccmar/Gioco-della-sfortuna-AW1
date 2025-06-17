@@ -20,7 +20,7 @@ function EndMatch(props) {
           Home
         </Button>
 
-        <Button variant="success" size="lg" className="shadow mt-2" onClick={ () => props.handleStartMatch() }>
+        <Button variant="primary" size="lg" className="shadow mt-2" onClick={ () => props.handleStartMatch() }>
           New Match
         </Button>
       </div>
@@ -45,15 +45,21 @@ function StartRound(props) {
 
       {
         props.round === 1 && !user ?
-          <div className="d-flex justify-content-center">
-            <Button variant="warning" size="lg" className="shadow mt-2 me-3" onClick={ () => navigate('/') }>
-              Home
-            </Button>
+          <>
+            <div className="d-flex justify-content-center">
+              <Button variant="warning" size="lg" className="shadow w-50 mt-2 me-3" onClick={ () => navigate('/') }>
+                Home
+              </Button>
 
-            <Button variant="success" size="lg" className="shadow mt-2" onClick={ () => navigate('/login') }>
-              Login
+              <Button variant="success" size="lg" className="shadow w-50 mt-2" onClick={ () => navigate('/login') }>
+                Login
+              </Button>
+            </div>
+
+            <Button variant="primary" size="lg" className="shadow mt-4" onClick={ () => props.handleStartMatch() }>
+              New Match (Demo)
             </Button>
-          </div>
+          </>
         :
           <Button variant="success" size="lg" className="shadow mt-2" onClick={ () => { props.startRound(); props.setMessage({msg: '', type: ''}) } }>
             Start Round
@@ -65,7 +71,7 @@ function StartRound(props) {
 
 function Choices(props) {
   return (
-    <div className="d-flex flex-column h-100 shadow rounded p-3">
+    <div className="d-flex flex-column shadow rounded p-3">
       <NextCard nextCard={ props.nextCard } />
 
       <div className="d-flex justify-content-between align-items-center mt-3">
