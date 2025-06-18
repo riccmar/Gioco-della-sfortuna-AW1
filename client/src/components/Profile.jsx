@@ -39,7 +39,7 @@ function Profile() {
             <Accordion className="mt-2">
               {
                 matches.map((match) =>
-                  <MatchItem key={ match.id } match={ match } />
+                  <MatchList key={ match.id } match={ match } />
                 )
               }
             </Accordion>
@@ -52,7 +52,7 @@ function Profile() {
   );
 }
 
-function MatchItem(props) {
+function MatchList(props) {
   return (
     <Accordion.Item eventKey={ props.match.id }>
       <Accordion.Header>

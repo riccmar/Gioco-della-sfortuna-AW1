@@ -63,7 +63,7 @@ app.use('/static', express.static('public'));
 /* routes */
 // POST /api/login
 app.post('/api/login', passport.authenticate('local'), function(req, res) {
-  return res.status(200).json(req.user);
+  return res.status(201).json(req.user);
 });
 
 // GET /api/sessions/current

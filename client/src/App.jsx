@@ -80,7 +80,7 @@ function App() {
 
             <Route path='/profile' element={ loggedIn ? <Profile /> : <Navigate replace to='/login' /> } />
 
-            <Route path='*' element={ <NotFound /> } /> {/* TODO: 404 Not Found */}
+            <Route path='*' element={ <NotFound /> } />
           </Route>
         </Routes>
       </UserContext.Provider>
