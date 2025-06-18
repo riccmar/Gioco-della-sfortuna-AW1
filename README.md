@@ -117,7 +117,7 @@
     }
     ```
 
-- POST `/api/games/:gameId/rounds/new`
+- POST `/api/games/demo/:gameId/rounds/new`
   - Descrizione: Inizia un nuovo round per la partita specificata per l'utente non loggato
 
   - Request parameters: `gameId`, ID della partita
@@ -400,3 +400,4 @@
 
 - riccardo.marconi@polito.it, password
 - elon.musk@polito.it, password
+- (test@polito.it, password)
