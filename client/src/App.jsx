@@ -54,7 +54,8 @@ function App() {
 
   const handleStartMatch = async () => {
     try {
-      const gId = await API.createMatch();
+      const gId = await API.createMatch(loggedIn);
+
       if (gId) {
         setGameId(gId);
         navigate(`/match/${ gId }`);

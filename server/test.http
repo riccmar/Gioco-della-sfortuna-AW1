@@ -20,4 +20,4 @@ POST http://localhost:3001/api/games/new
 
 ###
 
-GET http://localhost:3001/api/games/1/rounds/current
+GET http://localhost:3001/api/games/list

@@ -3,6 +3,8 @@ import { useParams } from "react-router";
 import { Row, Col, Alert } from "react-bootstrap";
 
 import { API } from "../API/api.mjs";
+import { useContext } from "react";
+import { LoggedInContext } from "../contexts/userContext.mjs";
 
 import { OwnedCards } from "./OwnedCards";
 import { Choices, StartRound, EndMatch } from "./GameControls";
@@ -18,10 +20,11 @@ function Game(props) {
   const [endGame, setEndGame] = useState(false);
   const [message, setMessage] = useState({ msg: '', type: '' });
   const { gameId } = useParams();
+  const loggedIn = useContext(LoggedInContext)
 
   const handleStartRound = async () => {
     try {
-      const nextRound = await API.newRound(gameId);      
+      const nextRound = await API.newRound(loggedIn, gameId);      
       setRound(nextRound);
 
       if (roundTimer) {
@@ -45,10 +48,13 @@ function Game(props) {
         setRoundTimer(null);
       }
       
-      const result = await API.checkEndRound(choice, gameId);
+      const result = await API.checkEndRound(loggedIn, choice, gameId);
       setMessage({ msg: result.message, type: result.type });
 
-      const endMatch = await API.checkEndMatch(gameId);
+      let endMatch = { end: false };
+      if (loggedIn) {
+        endMatch = await API.checkEndMatch(gameId);
+      }
       if (endMatch.end) {
         setEndGame(true);
         setMessage({ msg: endMatch.message, type: endMatch.type });
@@ -56,7 +62,7 @@ function Game(props) {
 
       setRoundStarted(false);
     } catch (error) {
-      setMessage({ msg: `Error: ${ err.error }`, type: 'danger' });
+      setMessage({ msg: `Error: ${ error.error }`, type: 'danger' });
     }
   }
   

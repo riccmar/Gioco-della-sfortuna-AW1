@@ -50,8 +50,9 @@ const logOut = async () => {
   }
 }
 
-const createMatch = async () => {
-  const response = await fetch(SERVER_URL + '/api/games/new', {
+const createMatch = async (loggedIn) => {
+  const route = loggedIn ? '/api/games/new' : '/api/games/demo/new';
+  const response = await fetch(SERVER_URL + route, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -68,8 +69,9 @@ const createMatch = async () => {
   }
 }
 
-const newRound = async (gameId) => {
-  const response = await fetch(SERVER_URL + `/api/games/${ gameId }/rounds/new`, {
+const newRound = async (loggedIn, gameId) => {
+  const route = loggedIn ? `/api/games/${ gameId }/rounds/new` : `/api/games/demo/${ gameId }/rounds/new`;
+  const response = await fetch(SERVER_URL + route, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -165,8 +167,9 @@ const getOptions = async (round, gameId) => {
   }
 }
 
-const checkEndRound = async (choice, gameId) => {
-  const response = await fetch(SERVER_URL + `/api/games/${ gameId }/rounds/last`, {
+const checkEndRound = async (loggedIn, choice, gameId) => {
+  const route = loggedIn ? `/api/games/${ gameId }/rounds/last` : `/api/games/demo/${ gameId }/rounds/last`;
+  const response = await fetch(SERVER_URL + route, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -239,5 +242,12 @@ const getMatchList = async () => {
 }
 
 
-const API = { logIn, logOut, getUserInfo, createMatch, newRound, getCurrentRound, getOwnedCards, getNextCard, getOptions, checkEndRound, checkEndMatch, getMatchResult, getMatchList };
+const API = { 
+  logIn, logOut, getUserInfo, 
+  createMatch, newRound, 
+  getCurrentRound, getOwnedCards, getNextCard, getOptions, 
+  checkEndRound, checkEndMatch, 
+  getMatchResult, 
+  getMatchList 
+};
 export { API };

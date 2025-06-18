@@ -90,6 +90,24 @@ const getMatchResult = (gameId) => {
   });
 }
 
+const getMatchCreator = (gameId) => {
+  return new Promise((resolve, reject) => {
+    const sql1 = `SELECT userId 
+                  FROM game 
+                  WHERE idG = ?`; 
+    
+    db.get(sql1, [gameId], (err, row) => {
+      if (err) {
+        reject(err);
+      } else if (row === undefined) {
+        reject({message: "Game not found."});
+      } else {
+        resolve(row.userId);
+      }
+    });
+  });
+}
+
 const createInitialRound = (gameId, userId, date, win) => {
   return new Promise((resolve, reject) => {
     const sql1 = `SELECT * 
@@ -314,7 +332,7 @@ const getUserMatchRounds = (gameId, userId) => {
 
 
 const DAO = { getUser, 
-              createMatch, updateMatch, getMatchResult,
+              createMatch, updateMatch, getMatchResult, getMatchCreator,
               createInitialRound, createRound, takeLastRound, updateRound, getRoundStartDate, 
               getOwnedCards, getNextCard, getCardByRound, 
               getWrongChoices,
