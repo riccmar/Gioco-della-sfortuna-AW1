@@ -118,6 +118,11 @@ app.post('/api/games/:gameId/rounds/new', isLoggedIn, async (req, res) => {
   const userId = req.user.id;
   
   try {
+    const gameCreator = await DAO.getMatchCreator(gameId);
+    if (gameCreator !== userId) {
+      return res.status(401).json({error: 'Unauthorized. You can only play your own games.'});
+    }
+
     let round = await DAO.takeLastRound(gameId, userId);
     round++;
 
@@ -142,6 +147,11 @@ app.post('/api/games/demo/:gameId/rounds/new', async (req, res) => {
   const userId = 0;
   
   try {
+    const gameCreator = await DAO.getMatchCreator(gameId);
+    if (gameCreator !== userId) {
+      return res.status(401).json({error: 'Unauthorized. You can only play your own games.'});
+    }
+
     let round = await DAO.takeLastRound(gameId, userId);
     round++;
     if (round > 1) {

@@ -24,7 +24,7 @@
     ```
 
   - Response: 
-    - `201 Created`: Successo, ritorna un Utente in formato JSON (vedi esempio sotto)
+    - `201 Created`: Successo, ritorna le informazioni dell'utente in formato JSON (vedi esempio sotto).
     - `401 Unauthorized`: Credenziali errate
     - `500 Internal Server Error`: Errore del server
   - Response body:
@@ -37,7 +37,7 @@
     ```
 
 - GET `/api/session/current`
-  - Descrizione: Recupera le informazioni della sessione corrente
+  - Descrizione: Recupera le informazioni della sessione corrente.
   
   - Request parameters: `None`
   - Request body: `None`
@@ -68,7 +68,7 @@
   - Response body: `None`
 
 - POST `/api/games/new`
-  - Descrizione: Crea una nuova partita per l'utente loggato
+  - Descrizione: Crea una nuova partita per l'utente loggato.
 
   - Request parameters: `None`
   - Request body: `None`
@@ -85,7 +85,7 @@
     ```
 
 - POST `/api/games/demo/new`
-  - Descrizione: Crea una nuova partita per l'utente non loggato (demo)
+  - Descrizione: Crea una nuova partita per l'utente non loggato (demo).
 
   - Request parameters: `None`
   - Request body: `None`
@@ -101,7 +101,7 @@
     ```
   
 - POST `/api/games/:gameId/rounds/new`
-  - Descrizione: Inizia un nuovo round per la partita specificata per l'utente loggato
+  - Descrizione: Inizia un nuovo round per la partita specificata per l'utente loggato.
 
   - Request parameters: `gameId`, ID della partita
   - Request body: `None`
@@ -109,6 +109,7 @@
   - Response:
     - `201 Created`: Successo, ritorna l'ID del nuovo round in formato JSON (vedi esempio sotto)
     - `400 Bad Request`: Utente inizia un nuovo round oltre il quinto
+    - `401 Unauthorized`: Utente cerca di iniziare un round di una partita non sua
     - `500 Internal Server Error`: Errore del server
   - Response body:
     ```json
@@ -118,14 +119,14 @@
     ```
 
 - POST `/api/games/demo/:gameId/rounds/new`
-  - Descrizione: Inizia un nuovo round per la partita specificata per l'utente non loggato
+  - Descrizione: Inizia un nuovo round per la partita specificata per l'utente non loggato.
 
   - Request parameters: `gameId`, ID della partita
   - Request body: `None`
 
   - Response:
     - `201 Created`: Successo, ritorna l'ID del nuovo round in formato JSON (vedi esempio sotto)
-    - `401 Unauthorized`: Utente inizia un nuovo round oltre il primo
+    - `401 Unauthorized`: Utente inizia un nuovo round oltre il primo. Oppure utente cerca di iniziare un round di una partita non sua
     - `500 Internal Server Error`: Errore del server
   - Response body:
     ```json
@@ -154,7 +155,7 @@
 - GET `/api/games/:gameId/rounds/:round/cards`
   - Descrizione: Recupera le carte possedute dall'utente per il round specificato di una propria partita specificata.
 
-  - Request parameters: `gameId`, ID della partita, `roundId`, ID del round
+  - Request parameters: `gameId`, ID della partita, `round`, numero del round
   - Request body: `None`
 
   - Response:
@@ -188,7 +189,7 @@
 - GET `/api/games/:gameId/rounds/:round/cards/next`
   - Descrizione: Recupera la carta da indovinare per il round specificato di una propria partita specificata.
 
-  - Request parameters: `gameId`, ID della partita, `roundId`, ID del round
+  - Request parameters: `gameId`, ID della partita, `round`, numero del round
   - Request body: `None`
 
   - Response:
@@ -207,7 +208,7 @@
 - GET `/api/games/:gameId/rounds/:round/options`
   - Descrizione: Recupera gli intervalli di sfortuna per la carta da indovinare del round specificato di una propria partita specificata.
 
-  - Request parameters: `gameId`, ID della partita, `roundId`, ID del round
+  - Request parameters: `gameId`, ID della partita, `round`, numero del round
   - Request body: `None`
 
   - Response:
@@ -216,16 +217,18 @@
     - `500 Internal Server Error`: Errore del server
   - Response body:
     ```json
+    {
       "options": [
         "1 - 7",
         "7 - 73",
         "73 - 81",
         "81 - 100"
       ]
+    }
     ```
 
 - PUT `/api/games/:gameId/rounds/last`
-  - Descrizione: Aggiorna l'ultimo round della partita specificata per l'utente specificato
+  - Descrizione: Aggiorna l'ultimo round della partita specificata per l'utente loggato.
 
   - Request parameters: `gameId`, ID della partita
   - Request body:
@@ -237,7 +240,7 @@
   
   - Response:
     - `200 OK`: Successo, ritorna un messaggio in formato JSON (vedi esempio sotto)
-    - `400 Bad Request`: Errore nel body della richiesta
+    - `400 Bad Request`: Errore nel body della richiesta (ad esempio, choice mancante)
     - `401 Unauthorized`: Utente non loggato. Oppure utente cerca di aggiornare un round di una partita non sua
     - `500 Internal Server Error`: Errore del server
   - Response body:
@@ -249,7 +252,7 @@
     ```
 
 - PUT `/api/games/demo/:gameId/rounds/last`
-  - Descrizione: Aggiorna l'ultimo round della partita specificata per l'utente non loggato
+  - Descrizione: Aggiorna l'ultimo round della partita specificata per l'utente non loggato.
 
   - Request parameters: `gameId`, ID della partita
   - Request body:
@@ -261,7 +264,7 @@
 
   - Response:
     - `200 OK`: Successo, ritorna un messaggio in formato JSON (vedi esempio sotto)
-    - `400 Bad Request`: Errore nel body della richiesta
+    - `400 Bad Request`: Errore nel body della richiesta (ad esempio, choice mancante)
     - `401 Unauthorized`: Utente non loggato prova ad aggiornare un round oltre il primo. Oppure utente cerca di aggiornare un round di una partita non sua
     - `500 Internal Server Error`: Errore del server
   - Response body:
